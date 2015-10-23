@@ -1,4 +1,4 @@
-package jenkins.plugins.slack;
+package jenkins.plugins.mattermost;
 
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
@@ -12,21 +12,21 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @RunWith(Parameterized.class)
-public class SlackNotifierTest extends TestCase {
+public class MattermostNotifierTest extends TestCase {
 
-    private SlackNotifierStub.DescriptorImplStub descriptor;
-    private SlackServiceStub slackServiceStub;
+    private MattermostNotifierStub.DescriptorImplStub descriptor;
+    private MattermostServiceStub mattermostServiceStub;
     private boolean response;
     private FormValidation.Kind expectedResult;
 
     @Before
     @Override
     public void setUp() {
-        descriptor = new SlackNotifierStub.DescriptorImplStub();
+        descriptor = new MattermostNotifierStub.DescriptorImplStub();
     }
 
-    public SlackNotifierTest(SlackServiceStub slackServiceStub, boolean response, FormValidation.Kind expectedResult) {
-        this.slackServiceStub = slackServiceStub;
+    public MattermostNotifierTest(MattermostServiceStub mattermostServiceStub, boolean response, FormValidation.Kind expectedResult) {
+        this.mattermostServiceStub = mattermostServiceStub;
         this.response = response;
         this.expectedResult = expectedResult;
     }
@@ -34,20 +34,20 @@ public class SlackNotifierTest extends TestCase {
     @Parameterized.Parameters
     public static Collection businessTypeKeys() {
         return Arrays.asList(new Object[][]{
-                {new SlackServiceStub(), true, FormValidation.Kind.OK},
-                {new SlackServiceStub(), false, FormValidation.Kind.ERROR},
+                {new MattermostServiceStub(), true, FormValidation.Kind.OK},
+                {new MattermostServiceStub(), false, FormValidation.Kind.ERROR},
                 {null, false, FormValidation.Kind.ERROR}
         });
     }
 
     @Test
     public void testDoTestConnection() {
-        if (slackServiceStub != null) {
-            slackServiceStub.setResponse(response);
+        if (mattermostServiceStub != null) {
+            mattermostServiceStub.setResponse(response);
         }
-        descriptor.setSlackService(slackServiceStub);
+        descriptor.setMattermostService(mattermostServiceStub);
         try {
-            FormValidation result = descriptor.doTestConnection("teamDomain", "authToken", "room", "buildServerUrl");
+            FormValidation result = descriptor.doTestConnection("host", "authToken", "room", "buildServerUrl");
             assertEquals(result.kind, expectedResult);
         } catch (Descriptor.FormException e) {
             e.printStackTrace();
@@ -55,7 +55,7 @@ public class SlackNotifierTest extends TestCase {
         }
     }
 
-    public static class SlackServiceStub implements SlackService {
+    public static class MattermostServiceStub implements MattermostService {
 
         private boolean response;
 

@@ -1,6 +1,6 @@
-package jenkins.plugins.slack;
+package jenkins.plugins.mattermost;
 
-public interface SlackService {
+public interface MattermostService {
     boolean publish(String message);
 
     boolean publish(String message, String color);

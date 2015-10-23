@@ -1,11 +1,11 @@
-package jenkins.plugins.slack;
+package jenkins.plugins.mattermost;
 
-public class StandardSlackServiceStub extends StandardSlackService {
+public class StandardMattermostServiceStub extends StandardMattermostService {
 
     private HttpClientStub httpClientStub;
 
-    public StandardSlackServiceStub(String teamDomain, String token, String roomId) {
-        super(teamDomain, token, roomId);
+    public StandardMattermostServiceStub(String host, String token, String roomId) {
+        super(host, token, roomId);
     }
 
     @Override

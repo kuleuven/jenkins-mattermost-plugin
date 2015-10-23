@@ -1,4 +1,4 @@
-package jenkins.plugins.slack;
+package jenkins.plugins.mattermost;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
@@ -14,11 +14,11 @@ import java.util.logging.Logger;
 
 @Extension
 @SuppressWarnings("rawtypes")
-public class SlackListener extends RunListener<AbstractBuild> {
+public class MattermostListener extends RunListener<AbstractBuild> {
 
-    private static final Logger logger = Logger.getLogger(SlackListener.class.getName());
+    private static final Logger logger = Logger.getLogger(MattermostListener.class.getName());
 
-    public SlackListener() {
+    public MattermostListener() {
         super(AbstractBuild.class);
     }
 
@@ -50,8 +50,8 @@ public class SlackListener extends RunListener<AbstractBuild> {
     FineGrainedNotifier getNotifier(AbstractProject project, TaskListener listener) {
         Map<Descriptor<Publisher>, Publisher> map = project.getPublishersList().toMap();
         for (Publisher publisher : map.values()) {
-            if (publisher instanceof SlackNotifier) {
-                return new ActiveNotifier((SlackNotifier) publisher, (BuildListener)listener);
+            if (publisher instanceof MattermostNotifier) {
+                return new ActiveNotifier((MattermostNotifier) publisher, (BuildListener)listener);
             }
         }
         return new DisabledNotifier();
