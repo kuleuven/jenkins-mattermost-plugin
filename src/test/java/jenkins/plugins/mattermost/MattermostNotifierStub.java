@@ -1,32 +1,32 @@
-package jenkins.plugins.slack;
+package jenkins.plugins.mattermost;
 
-public class SlackNotifierStub extends SlackNotifier {
+public class MattermostNotifierStub extends MattermostNotifier {
 
-    public SlackNotifierStub(String teamDomain, String authToken, String room, String buildServerUrl,
+    public MattermostNotifierStub(String host, String authToken, String room, String buildServerUrl,
                              String sendAs, boolean startNotification, boolean notifyAborted, boolean notifyFailure,
                              boolean notifyNotBuilt, boolean notifySuccess, boolean notifyUnstable, boolean notifyBackToNormal,
                              boolean notifyRepeatedFailure, boolean includeTestSummary, boolean showCommitList,
                              boolean includeCustomMessage, String customMessage) {
-        super(teamDomain, authToken, room, buildServerUrl, sendAs, startNotification, notifyAborted, notifyFailure,
+        super(host, authToken, room, buildServerUrl, sendAs, startNotification, notifyAborted, notifyFailure,
                 notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
                 includeTestSummary, showCommitList, includeCustomMessage, customMessage);
     }
 
-    public static class DescriptorImplStub extends SlackNotifier.DescriptorImpl {
+    public static class DescriptorImplStub extends MattermostNotifier.DescriptorImpl {
 
-        private SlackService slackService;
+        private MattermostService mattermostService;
 
         @Override
         public synchronized void load() {
         }
 
         @Override
-        SlackService getSlackService(final String teamDomain, final String authToken, final String room) {
-            return slackService;
+        MattermostService getMattermostService(final String host, final String authToken, final String room) {
+            return mattermostService;
         }
 
-        public void setSlackService(SlackService slackService) {
-            this.slackService = slackService;
+        public void setMattermostService(MattermostService mattermostService) {
+            this.mattermostService = mattermostService;
         }
     }
 }

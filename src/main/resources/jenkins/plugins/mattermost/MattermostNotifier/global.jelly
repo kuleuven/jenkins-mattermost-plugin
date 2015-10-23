@@ -1,0 +1,31 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <!--
+    This Jelly script is used to produce the global configuration option.
+
+    Hudson uses a set of tag libraries to provide uniformity in forms.
+    To determine where this tag is defined, first check the namespace URI,
+    and then look under $HUDSON/views/. For example, <f:section> is defined
+    in $HUDSON/views/lib/form/section.jelly.
+
+    It's also often useful to just check other similar scripts to see what
+    tags they use. Views are always organized according to its owner class,
+    so it should be straightforward to find them.
+  -->
+<f:section title="Global Mattermost Notifier Settings" name="mattermost">
+    <f:entry title="Host" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostHost.html">
+        <f:textbox field="host" name="mattermostHost" value="${descriptor.getHost()}" />
+    </f:entry>
+    <f:entry title="Integration Token" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostToken.html">
+        <f:textbox field="token" name="mattermostToken" value="${descriptor.getToken()}" />
+    </f:entry>
+    <f:entry title="Channel" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostRoom.html">
+        <f:textbox field="room" name="mattermostRoom" value="${descriptor.getRoom()}" />
+    </f:entry>
+    <f:entry title="Build Server URL" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostBuildServerUrl.html">
+        <f:textbox field="buildServerUrl" name="mattermostBuildServerUrl" value="${descriptor.getBuildServerUrl()}" />
+    </f:entry>
+    <f:validateButton
+        title="${%Test Connection}" progress="${%Testing...}"
+        method="testConnection" with="mattermostHost,mattermostToken,mattermostRoom,mattermostBuildServerUrl" />
+  </f:section>
+</j:jelly>

@@ -1,4 +1,4 @@
-package jenkins.plugins.slack;
+package jenkins.plugins.mattermost;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;

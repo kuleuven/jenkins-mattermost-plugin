@@ -1,4 +1,4 @@
-package jenkins.plugins.slack;
+package jenkins.plugins.mattermost;
 
 import hudson.EnvVars;
 import hudson.Extension;
@@ -23,11 +23,11 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class SlackNotifier extends Notifier {
+public class MattermostNotifier extends Notifier {
 
-    private static final Logger logger = Logger.getLogger(SlackNotifier.class.getName());
+    private static final Logger logger = Logger.getLogger(MattermostNotifier.class.getName());
 
-    private String teamDomain;
+    private String host;
     private String authToken;
     private String buildServerUrl;
     private String room;
@@ -50,8 +50,8 @@ public class SlackNotifier extends Notifier {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    public String getTeamDomain() {
-        return teamDomain;
+    public String getHost() {
+        return host;
     }
 
     public String getRoom() {
@@ -125,13 +125,13 @@ public class SlackNotifier extends Notifier {
     }
 
     @DataBoundConstructor
-    public SlackNotifier(final String teamDomain, final String authToken, final String room, final String buildServerUrl,
+    public MattermostNotifier(final String host, final String authToken, final String room, final String buildServerUrl,
                          final String sendAs, final boolean startNotification, final boolean notifyAborted, final boolean notifyFailure,
                          final boolean notifyNotBuilt, final boolean notifySuccess, final boolean notifyUnstable, final boolean notifyBackToNormal,
                          final boolean notifyRepeatedFailure, final boolean includeTestSummary, final boolean showCommitList,
                          boolean includeCustomMessage, String customMessage) {
         super();
-        this.teamDomain = teamDomain;
+        this.host = host;
         this.authToken = authToken;
         this.buildServerUrl = buildServerUrl;
         this.room = room;
@@ -154,10 +154,10 @@ public class SlackNotifier extends Notifier {
         return BuildStepMonitor.NONE;
     }
 
-    public SlackService newSlackService(AbstractBuild r, BuildListener listener) {
-        String teamDomain = this.teamDomain;
-        if (StringUtils.isEmpty(teamDomain)) {
-            teamDomain = getDescriptor().getTeamDomain();
+    public MattermostService newMattermostService(AbstractBuild r, BuildListener listener) {
+        String host = this.host;
+        if (StringUtils.isEmpty(host)) {
+            host = getDescriptor().getHost();
         }
         String authToken = this.authToken;
         if (StringUtils.isEmpty(authToken)) {
@@ -175,11 +175,11 @@ public class SlackNotifier extends Notifier {
             listener.getLogger().println("Error retrieving environment vars: " + e.getMessage());
             env = new EnvVars();
         }
-        teamDomain = env.expand(teamDomain);
+        host = env.expand(host);
         authToken = env.expand(authToken);
         room = env.expand(room);
 
-        return new StandardSlackService(teamDomain, authToken, room);
+        return new StandardMattermostService(host, authToken, room);
     }
 
     @Override
@@ -192,9 +192,9 @@ public class SlackNotifier extends Notifier {
         if (startNotification) {
             Map<Descriptor<Publisher>, Publisher> map = build.getProject().getPublishersList().toMap();
             for (Publisher publisher : map.values()) {
-                if (publisher instanceof SlackNotifier) {
+                if (publisher instanceof MattermostNotifier) {
                     logger.info("Invoking Started...");
-                    new ActiveNotifier((SlackNotifier) publisher, listener).started(build);
+                    new ActiveNotifier((MattermostNotifier) publisher, listener).started(build);
                 }
             }
         }
@@ -204,7 +204,7 @@ public class SlackNotifier extends Notifier {
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-        private String teamDomain;
+        private String host;
         private String token;
         private String room;
         private String buildServerUrl;
@@ -214,8 +214,8 @@ public class SlackNotifier extends Notifier {
             load();
         }
 
-        public String getTeamDomain() {
-            return teamDomain;
+        public String getHost() {
+            return host;
         }
 
         public String getToken() {
@@ -245,34 +245,34 @@ public class SlackNotifier extends Notifier {
         }
 
         @Override
-        public SlackNotifier newInstance(StaplerRequest sr, JSONObject json) {
-            String teamDomain = sr.getParameter("slackTeamDomain");
-            String token = sr.getParameter("slackToken");
-            String room = sr.getParameter("slackRoom");
-            boolean startNotification = "true".equals(sr.getParameter("slackStartNotification"));
-            boolean notifySuccess = "true".equals(sr.getParameter("slackNotifySuccess"));
-            boolean notifyAborted = "true".equals(sr.getParameter("slackNotifyAborted"));
-            boolean notifyNotBuilt = "true".equals(sr.getParameter("slackNotifyNotBuilt"));
-            boolean notifyUnstable = "true".equals(sr.getParameter("slackNotifyUnstable"));
-            boolean notifyFailure = "true".equals(sr.getParameter("slackNotifyFailure"));
-            boolean notifyBackToNormal = "true".equals(sr.getParameter("slackNotifyBackToNormal"));
-            boolean notifyRepeatedFailure = "true".equals(sr.getParameter("slackNotifyRepeatedFailure"));
+        public MattermostNotifier newInstance(StaplerRequest sr, JSONObject json) {
+            String host = sr.getParameter("mattermostHost");
+            String token = sr.getParameter("mattermostToken");
+            String room = sr.getParameter("mattermostRoom");
+            boolean startNotification = "true".equals(sr.getParameter("mattermostStartNotification"));
+            boolean notifySuccess = "true".equals(sr.getParameter("mattermostNotifySuccess"));
+            boolean notifyAborted = "true".equals(sr.getParameter("mattermostNotifyAborted"));
+            boolean notifyNotBuilt = "true".equals(sr.getParameter("mattermostNotifyNotBuilt"));
+            boolean notifyUnstable = "true".equals(sr.getParameter("mattermostNotifyUnstable"));
+            boolean notifyFailure = "true".equals(sr.getParameter("mattermostNotifyFailure"));
+            boolean notifyBackToNormal = "true".equals(sr.getParameter("mattermostNotifyBackToNormal"));
+            boolean notifyRepeatedFailure = "true".equals(sr.getParameter("mattermostNotifyRepeatedFailure"));
             boolean includeTestSummary = "true".equals(sr.getParameter("includeTestSummary"));
-            boolean showCommitList = "true".equals(sr.getParameter("slackShowCommitList"));
+            boolean showCommitList = "true".equals(sr.getParameter("mattermostShowCommitList"));
             boolean includeCustomMessage = "on".equals(sr.getParameter("includeCustomMessage"));
             String customMessage = sr.getParameter("customMessage");
-            return new SlackNotifier(teamDomain, token, room, buildServerUrl, sendAs, startNotification, notifyAborted,
+            return new MattermostNotifier(host, token, room, buildServerUrl, sendAs, startNotification, notifyAborted,
                     notifyFailure, notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
                     includeTestSummary, showCommitList, includeCustomMessage, customMessage);
         }
 
         @Override
         public boolean configure(StaplerRequest sr, JSONObject formData) throws FormException {
-            teamDomain = sr.getParameter("slackTeamDomain");
-            token = sr.getParameter("slackToken");
-            room = sr.getParameter("slackRoom");
-            buildServerUrl = sr.getParameter("slackBuildServerUrl");
-            sendAs = sr.getParameter("slackSendAs");
+            host = sr.getParameter("mattermostHost");
+            token = sr.getParameter("mattermostToken");
+            room = sr.getParameter("mattermostRoom");
+            buildServerUrl = sr.getParameter("mattermostBuildServerUrl");
+            sendAs = sr.getParameter("mattermostSendAs");
             if(buildServerUrl == null || buildServerUrl == "") {
                 JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
                 buildServerUrl = jenkinsConfig.getUrl();
@@ -284,23 +284,23 @@ public class SlackNotifier extends Notifier {
             return super.configure(sr, formData);
         }
 
-        SlackService getSlackService(final String teamDomain, final String authToken, final String room) {
-            return new StandardSlackService(teamDomain, authToken, room);
+        MattermostService getMattermostService(final String host, final String authToken, final String room) {
+            return new StandardMattermostService(host, authToken, room);
         }
 
         @Override
         public String getDisplayName() {
-            return "Slack Notifications";
+            return "Mattermost Notifications";
         }
 
-        public FormValidation doTestConnection(@QueryParameter("slackTeamDomain") final String teamDomain,
-                                               @QueryParameter("slackToken") final String authToken,
-                                               @QueryParameter("slackRoom") final String room,
-                                               @QueryParameter("slackBuildServerUrl") final String buildServerUrl) throws FormException {
+        public FormValidation doTestConnection(@QueryParameter("mattermostHost") final String host,
+                                               @QueryParameter("mattermostToken") final String authToken,
+                                               @QueryParameter("mattermostRoom") final String room,
+                                               @QueryParameter("mattermostBuildServerUrl") final String buildServerUrl) throws FormException {
             try {
-                String targetDomain = teamDomain;
+                String targetDomain = host;
                 if (StringUtils.isEmpty(targetDomain)) {
-                    targetDomain = this.teamDomain;
+                    targetDomain = this.host;
                 }
                 String targetToken = authToken;
                 if (StringUtils.isEmpty(targetToken)) {
@@ -314,9 +314,9 @@ public class SlackNotifier extends Notifier {
                 if (StringUtils.isEmpty(targetBuildServerUrl)) {
                     targetBuildServerUrl = this.buildServerUrl;
                 }
-                SlackService testSlackService = getSlackService(targetDomain, targetToken, targetRoom);
-                String message = "Slack/Jenkins plugin: you're all set on " + targetBuildServerUrl;
-                boolean success = testSlackService.publish(message, "good");
+                MattermostService testMattermostService = getMattermostService(targetDomain, targetToken, targetRoom);
+                String message = "Mattermost/Jenkins plugin: you're all set on " + targetBuildServerUrl;
+                boolean success = testMattermostService.publish(message, "good");
                 return success ? FormValidation.ok("Success") : FormValidation.error("Failure");
             } catch (Exception e) {
                 return FormValidation.error("Client error : " + e.getMessage());
