@@ -38,7 +38,7 @@
         </f:entry>
 
         <f:optionalBlock name="includeCustomMessage" title="Include Custom Message" checked="${instance.includeCustomMessage()}">
-            <f:entry title="Custom Message" help="${rootURL}/plugin/mattermost/help-projectConfig-mattermostCustomMessage.html">
+            <f:entry title="Custom Message" help="/plugin/mattermost/help-projectConfig-mattermostCustomMessage.html">
                 <f:textarea name="customMessage" value="${instance.getCustomMessage()}"/>
             </f:entry>
         </f:optionalBlock>
@@ -47,15 +47,15 @@
             <f:checkbox name="mattermostShowCommitList" value="true" checked="${instance.getShowCommitList()}"/>
         </f:entry>
 
-        <f:entry title="Host" help="${rootURL}/plugin/mattermost/help-projectConfig-mattermostHost.html">
+        <f:entry title="Host" help="/plugin/mattermost/help-projectConfig-mattermostHost.html">
             <f:textbox name="mattermostHost" value="${instance.getHost()}"/>
         </f:entry>
 
-        <f:entry title="Integration Token" help="${rootURL}/plugin/mattermost/help-projectConfig-mattermostToken.html">
+        <f:entry title="Integration Token" help="/plugin/mattermost/help-projectConfig-mattermostToken.html">
             <f:textbox name="mattermostToken" value="${instance.getAuthToken()}"/>
         </f:entry>
 
-        <f:entry title="Project Channel" help="${rootURL}/plugin/mattermost/help-projectConfig-mattermostRoom.html">
+        <f:entry title="Project Channel" help="/plugin/mattermost/help-projectConfig-mattermostRoom.html">
             <f:textbox name="mattermostRoom" value="${instance.getRoom()}"/>
         </f:entry>
         <f:validateButton
