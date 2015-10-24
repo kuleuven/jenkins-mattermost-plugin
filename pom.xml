@@ -21,7 +21,7 @@
     <packaging>hpi</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>Mattermost Notification Plugin</name>
-    <description>A Build status publisher that notifies channels on a Mattermost team</description>
+    <description>A Build status publisher that notifies channels on a Mattermost server</description>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Mattermost+Plugin</url>
 
     <properties>
@@ -37,9 +37,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com/jenkinsci/mattermost-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/mattermost-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/mattermost-plugin</url>
+        <connection>scm:git:ssh://git@github.com/jovandeginste/jenkins-mattermost-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jovandeginste/jenkins-mattermost-plugin.git</developerConnection>
+        <url>https://github.com/jovandeginste/jenkins-mattermost-plugin</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -124,14 +124,14 @@
     -->
     <developers>
         <developer>
-            <id>sag47</id>
-            <name>Sam Gleske</name>
-            <email>sam.mxracer@gmail.com</email>
-            <url>https://github.com/samrocketman</url>
+            <id>jovandeginste</id>
+            <name>Jo Vandeginste</name>
+            <email>jo.vandeginste@gmail.com</email>
+            <url>https://github.com/jovandeginste</url>
             <roles>
                 <role>maintainer</role>
             </roles>
-            <timezone>America/New_York</timezone>
+						<timezone>Europe/Brussels</timezone>
         </developer>
     </developers>
 </project>

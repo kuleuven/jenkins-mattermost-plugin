@@ -13,14 +13,13 @@ Which was, in turn, a fork of the Campfire plugin.
 # Jenkins Instructions
 
 1. Set up a Mattermost server
-2. Configure an outgoing webhook
+2. Configure an incoming webhook
 3. Install this plugin on your Jenkins server
 4. Configure it in your Jenkins job and **add it as a Post-build action**.
 
 # Developer instructions
 
-Install Maven and JDK.  This was last build with Maven 3.2.5 and OpenJDK
-1.7.0\_75 on KUbuntu 14.04.
+Install Maven and JDK.
 
 Run unit tests
 
