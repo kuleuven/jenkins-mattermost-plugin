@@ -14,8 +14,8 @@ public class StandardMattermostServiceTest {
      */
     @Test
     public void publishWithBadHostShouldNotRethrowExceptions() {
-        StandardMattermostService service = new StandardMattermostService("foo", "token", "#general");
-        service.setHost("hostvaluethatwillcausepublishtofail");
+        StandardMattermostService service = new StandardMattermostService("foo", "#general", "");
+        service.setEndpoint("hostvaluethatwillcausepublishtofail");
         service.publish("message");
     }
 
@@ -24,22 +24,13 @@ public class StandardMattermostServiceTest {
      */
     @Test
     public void invalidHostShouldFail() {
-        StandardMattermostService service = new StandardMattermostService("my", "token", "#general");
-        service.publish("message");
-    }
-
-    /**
-     * Use a valid team domain, but a bad token
-     */
-    @Test
-    public void invalidTokenShouldFail() {
-        StandardMattermostService service = new StandardMattermostService("tinyspeck", "token", "#general");
+        StandardMattermostService service = new StandardMattermostService("my", "#general", "");
         service.publish("message");
     }
 
     @Test
     public void publishToASingleRoomSendsASingleMessage() {
-        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "token", "#room1");
+        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "#room1", "");
         HttpClientStub httpClientStub = new HttpClientStub();
         service.setHttpClient(httpClientStub);
         service.publish("message");
@@ -48,7 +39,7 @@ public class StandardMattermostServiceTest {
 
     @Test
     public void publishToMultipleRoomsSendsAMessageToEveryRoom() {
-        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "token", "#room1,#room2,#room3");
+        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "#room1,#room2,#room3", "");
         HttpClientStub httpClientStub = new HttpClientStub();
         service.setHttpClient(httpClientStub);
         service.publish("message");
@@ -57,7 +48,7 @@ public class StandardMattermostServiceTest {
 
     @Test
     public void successfulPublishToASingleRoomReturnsTrue() {
-        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "token", "#room1");
+        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "#room1", "");
         HttpClientStub httpClientStub = new HttpClientStub();
         httpClientStub.setHttpStatus(HttpStatus.SC_OK);
         service.setHttpClient(httpClientStub);
@@ -66,7 +57,7 @@ public class StandardMattermostServiceTest {
 
     @Test
     public void successfulPublishToMultipleRoomsReturnsTrue() {
-        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "token", "#room1,#room2,#room3");
+        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "#room1,#room2,#room3", "");
         HttpClientStub httpClientStub = new HttpClientStub();
         httpClientStub.setHttpStatus(HttpStatus.SC_OK);
         service.setHttpClient(httpClientStub);
@@ -75,7 +66,7 @@ public class StandardMattermostServiceTest {
 
     @Test
     public void failedPublishToASingleRoomReturnsFalse() {
-        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "token", "#room1");
+        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "#room1", "");
         HttpClientStub httpClientStub = new HttpClientStub();
         httpClientStub.setHttpStatus(HttpStatus.SC_NOT_FOUND);
         service.setHttpClient(httpClientStub);
@@ -84,7 +75,7 @@ public class StandardMattermostServiceTest {
 
     @Test
     public void singleFailedPublishToMultipleRoomsReturnsFalse() {
-        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "token", "#room1,#room2,#room3");
+        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "#room1,#room2,#room3", "");
         HttpClientStub httpClientStub = new HttpClientStub();
         httpClientStub.setFailAlternateResponses(true);
         httpClientStub.setHttpStatus(HttpStatus.SC_OK);
@@ -94,7 +85,7 @@ public class StandardMattermostServiceTest {
 
     @Test
     public void publishToEmptyRoomReturnsTrue() {
-        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "token", "");
+        StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "", "");
         HttpClientStub httpClientStub = new HttpClientStub();
         httpClientStub.setHttpStatus(HttpStatus.SC_OK);
         service.setHttpClient(httpClientStub);

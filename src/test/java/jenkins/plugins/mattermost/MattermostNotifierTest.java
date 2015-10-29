@@ -47,7 +47,7 @@ public class MattermostNotifierTest extends TestCase {
         }
         descriptor.setMattermostService(mattermostServiceStub);
         try {
-            FormValidation result = descriptor.doTestConnection("host", "authToken", "room", "buildServerUrl");
+            FormValidation result = descriptor.doTestConnection("host", "room", "", "buildServerUrl");
             assertEquals(result.kind, expectedResult);
         } catch (Descriptor.FormException e) {
             e.printStackTrace();

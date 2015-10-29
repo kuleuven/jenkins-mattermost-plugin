@@ -12,20 +12,20 @@
     so it should be straightforward to find them.
   -->
 <f:section title="Global Mattermost Notifier Settings" name="mattermost">
-    <f:entry title="Host" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostHost.html">
-        <f:textbox field="host" name="mattermostHost" value="${descriptor.getHost()}" />
-    </f:entry>
-    <f:entry title="Integration Token" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostToken.html">
-        <f:textbox field="token" name="mattermostToken" value="${descriptor.getToken()}" />
+    <f:entry title="Endpoint" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostEndpoint.html">
+        <f:textbox field="endpoint" name="mattermostEndpoint" value="${descriptor.getEndpoint()}" />
     </f:entry>
     <f:entry title="Channel" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostRoom.html">
         <f:textbox field="room" name="mattermostRoom" value="${descriptor.getRoom()}" />
+    </f:entry>
+    <f:entry title="Icon to use" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostIcon.html">
+        <f:textbox field="room" name="mattermostIcon" value="${descriptor.getIcon()}" />
     </f:entry>
     <f:entry title="Build Server URL" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostBuildServerUrl.html">
         <f:textbox field="buildServerUrl" name="mattermostBuildServerUrl" value="${descriptor.getBuildServerUrl()}" />
     </f:entry>
     <f:validateButton
         title="${%Test Connection}" progress="${%Testing...}"
-        method="testConnection" with="mattermostHost,mattermostToken,mattermostRoom,mattermostBuildServerUrl" />
+        method="testConnection" with="mattermostEndpoint,mattermostRoom,mattermostBuildServerUrl" />
   </f:section>
 </j:jelly>

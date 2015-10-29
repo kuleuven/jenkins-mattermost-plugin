@@ -27,10 +27,10 @@ public class MattermostNotifier extends Notifier {
 
     private static final Logger logger = Logger.getLogger(MattermostNotifier.class.getName());
 
-    private String host;
-    private String authToken;
+    private String endpoint;
     private String buildServerUrl;
     private String room;
+    private String icon;
     private String sendAs;
     private boolean startNotification;
     private boolean notifySuccess;
@@ -50,16 +50,16 @@ public class MattermostNotifier extends Notifier {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    public String getHost() {
-        return host;
+    public String getEndpoint() {
+        return endpoint;
     }
 
     public String getRoom() {
         return room;
     }
 
-    public String getAuthToken() {
-        return authToken;
+    public String getIcon() {
+        return icon;
     }
 
     public String getBuildServerUrl() {
@@ -125,16 +125,16 @@ public class MattermostNotifier extends Notifier {
     }
 
     @DataBoundConstructor
-    public MattermostNotifier(final String host, final String authToken, final String room, final String buildServerUrl,
+    public MattermostNotifier(final String endpoint, final String room, final String icon, final String buildServerUrl,
                          final String sendAs, final boolean startNotification, final boolean notifyAborted, final boolean notifyFailure,
                          final boolean notifyNotBuilt, final boolean notifySuccess, final boolean notifyUnstable, final boolean notifyBackToNormal,
                          final boolean notifyRepeatedFailure, final boolean includeTestSummary, final boolean showCommitList,
                          boolean includeCustomMessage, String customMessage) {
         super();
-        this.host = host;
-        this.authToken = authToken;
+        this.endpoint = endpoint;
         this.buildServerUrl = buildServerUrl;
         this.room = room;
+        this.icon = icon;
         this.sendAs = sendAs;
         this.startNotification = startNotification;
         this.notifyAborted = notifyAborted;
@@ -155,17 +155,18 @@ public class MattermostNotifier extends Notifier {
     }
 
     public MattermostService newMattermostService(AbstractBuild r, BuildListener listener) {
-        String host = this.host;
-        if (StringUtils.isEmpty(host)) {
-            host = getDescriptor().getHost();
-        }
-        String authToken = this.authToken;
-        if (StringUtils.isEmpty(authToken)) {
-            authToken = getDescriptor().getToken();
+        String endpoint = this.endpoint;
+        if (StringUtils.isEmpty(endpoint)) {
+            endpoint = getDescriptor().getEndpoint();
         }
         String room = this.room;
         if (StringUtils.isEmpty(room)) {
             room = getDescriptor().getRoom();
+        }
+
+        String icon = this.icon;
+        if (StringUtils.isEmpty(icon)) {
+            icon = getDescriptor().getIcon();
         }
 
         EnvVars env = null;
@@ -175,11 +176,11 @@ public class MattermostNotifier extends Notifier {
             listener.getLogger().println("Error retrieving environment vars: " + e.getMessage());
             env = new EnvVars();
         }
-        host = env.expand(host);
-        authToken = env.expand(authToken);
+        endpoint = env.expand(endpoint);
         room = env.expand(room);
+        icon = env.expand(icon);
 
-        return new StandardMattermostService(host, authToken, room);
+        return new StandardMattermostService(endpoint, room, icon);
     }
 
     @Override
@@ -204,9 +205,9 @@ public class MattermostNotifier extends Notifier {
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-        private String host;
-        private String token;
+        private String endpoint;
         private String room;
+        private String icon;
         private String buildServerUrl;
         private String sendAs;
 
@@ -214,16 +215,16 @@ public class MattermostNotifier extends Notifier {
             load();
         }
 
-        public String getHost() {
-            return host;
-        }
-
-        public String getToken() {
-            return token;
+        public String getEndpoint() {
+            return endpoint;
         }
 
         public String getRoom() {
             return room;
+        }
+
+        public String getIcon() {
+            return icon;
         }
 
         public String getBuildServerUrl() {
@@ -246,9 +247,9 @@ public class MattermostNotifier extends Notifier {
 
         @Override
         public MattermostNotifier newInstance(StaplerRequest sr, JSONObject json) {
-            String host = sr.getParameter("mattermostHost");
-            String token = sr.getParameter("mattermostToken");
+            String endpoint = sr.getParameter("mattermostEndpoint");
             String room = sr.getParameter("mattermostRoom");
+            String icon = sr.getParameter("mattermostIcon");
             boolean startNotification = "true".equals(sr.getParameter("mattermostStartNotification"));
             boolean notifySuccess = "true".equals(sr.getParameter("mattermostNotifySuccess"));
             boolean notifyAborted = "true".equals(sr.getParameter("mattermostNotifyAborted"));
@@ -261,16 +262,16 @@ public class MattermostNotifier extends Notifier {
             boolean showCommitList = "true".equals(sr.getParameter("mattermostShowCommitList"));
             boolean includeCustomMessage = "on".equals(sr.getParameter("includeCustomMessage"));
             String customMessage = sr.getParameter("customMessage");
-            return new MattermostNotifier(host, token, room, buildServerUrl, sendAs, startNotification, notifyAborted,
+            return new MattermostNotifier(endpoint, room, icon, buildServerUrl, sendAs, startNotification, notifyAborted,
                     notifyFailure, notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
                     includeTestSummary, showCommitList, includeCustomMessage, customMessage);
         }
 
         @Override
         public boolean configure(StaplerRequest sr, JSONObject formData) throws FormException {
-            host = sr.getParameter("mattermostHost");
-            token = sr.getParameter("mattermostToken");
+            endpoint = sr.getParameter("mattermostEndpoint");
             room = sr.getParameter("mattermostRoom");
+            icon = sr.getParameter("mattermostIcon");
             buildServerUrl = sr.getParameter("mattermostBuildServerUrl");
             sendAs = sr.getParameter("mattermostSendAs");
             if(buildServerUrl == null || buildServerUrl == "") {
@@ -284,8 +285,8 @@ public class MattermostNotifier extends Notifier {
             return super.configure(sr, formData);
         }
 
-        MattermostService getMattermostService(final String host, final String authToken, final String room) {
-            return new StandardMattermostService(host, authToken, room);
+        MattermostService getMattermostService(final String endpoint, final String room, final String icon) {
+            return new StandardMattermostService(endpoint, room, icon);
         }
 
         @Override
@@ -293,28 +294,28 @@ public class MattermostNotifier extends Notifier {
             return "Mattermost Notifications";
         }
 
-        public FormValidation doTestConnection(@QueryParameter("mattermostHost") final String host,
-                                               @QueryParameter("mattermostToken") final String authToken,
+        public FormValidation doTestConnection(@QueryParameter("mattermostEndpoint") final String endpoint,
                                                @QueryParameter("mattermostRoom") final String room,
+                                               @QueryParameter("mattermostIcon") final String icon,
                                                @QueryParameter("mattermostBuildServerUrl") final String buildServerUrl) throws FormException {
             try {
-                String targetDomain = host;
-                if (StringUtils.isEmpty(targetDomain)) {
-                    targetDomain = this.host;
-                }
-                String targetToken = authToken;
-                if (StringUtils.isEmpty(targetToken)) {
-                    targetToken = this.token;
+                String targetEndpoint = endpoint;
+                if (StringUtils.isEmpty(targetEndpoint)) {
+                    targetEndpoint = this.endpoint;
                 }
                 String targetRoom = room;
                 if (StringUtils.isEmpty(targetRoom)) {
                     targetRoom = this.room;
                 }
+                String targetIcon = icon;
+                if (StringUtils.isEmpty(targetIcon)) {
+                    targetIcon = this.icon;
+                }
                 String targetBuildServerUrl = buildServerUrl;
                 if (StringUtils.isEmpty(targetBuildServerUrl)) {
                     targetBuildServerUrl = this.buildServerUrl;
                 }
-                MattermostService testMattermostService = getMattermostService(targetDomain, targetToken, targetRoom);
+                MattermostService testMattermostService = getMattermostService(targetEndpoint, targetRoom, targetIcon);
                 String message = "Mattermost/Jenkins plugin: you're all set on " + targetBuildServerUrl;
                 boolean success = testMattermostService.publish(message, "good");
                 return success ? FormValidation.ok("Success") : FormValidation.error("Failure");

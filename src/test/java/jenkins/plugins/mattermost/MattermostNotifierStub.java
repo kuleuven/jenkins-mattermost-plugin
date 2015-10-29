@@ -2,12 +2,12 @@ package jenkins.plugins.mattermost;
 
 public class MattermostNotifierStub extends MattermostNotifier {
 
-    public MattermostNotifierStub(String host, String authToken, String room, String buildServerUrl,
+    public MattermostNotifierStub(String host, String room, String icon, String buildServerUrl,
                              String sendAs, boolean startNotification, boolean notifyAborted, boolean notifyFailure,
                              boolean notifyNotBuilt, boolean notifySuccess, boolean notifyUnstable, boolean notifyBackToNormal,
                              boolean notifyRepeatedFailure, boolean includeTestSummary, boolean showCommitList,
                              boolean includeCustomMessage, String customMessage) {
-        super(host, authToken, room, buildServerUrl, sendAs, startNotification, notifyAborted, notifyFailure,
+        super(host, room, icon, buildServerUrl, sendAs, startNotification, notifyAborted, notifyFailure,
                 notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
                 includeTestSummary, showCommitList, includeCustomMessage, customMessage);
     }
@@ -21,7 +21,7 @@ public class MattermostNotifierStub extends MattermostNotifier {
         }
 
         @Override
-        MattermostService getMattermostService(final String host, final String authToken, final String room) {
+        MattermostService getMattermostService(final String host, final String room, final String icon) {
             return mattermostService;
         }
 

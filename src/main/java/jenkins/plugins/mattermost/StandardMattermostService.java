@@ -19,15 +19,15 @@ public class StandardMattermostService implements MattermostService {
 
     private static final Logger logger = Logger.getLogger(StandardMattermostService.class.getName());
 
-    private String host;
-    private String token;
+    private String endpoint;
     private String[] roomIds;
+    private String icon;
 
-    public StandardMattermostService(String host, String token, String roomId) {
+    public StandardMattermostService(String endpoint, String roomId, String icon) {
         super();
-        this.host = host;
-        this.token = token;
+        this.endpoint = endpoint;
         this.roomIds = roomId.split("[,; ]+");
+        this.icon = icon;
     }
 
     public boolean publish(String message) {
@@ -37,7 +37,7 @@ public class StandardMattermostService implements MattermostService {
     public boolean publish(String message, String color) {
         boolean result = true;
         for (String roomId : roomIds) {
-            String url = "https://" + host + "/hooks/" + token;
+            String url = endpoint;
             logger.info("Posting: to " + roomId + " on " + " using " + url +": " + message + " " + color);
             HttpClient client = getHttpClient();
             PostMethod post = new PostMethod(url);
@@ -47,7 +47,7 @@ public class StandardMattermostService implements MattermostService {
                 json.put("channel", roomId);
                 json.put("text", message);
                 json.put("username", "jenkins");
-                json.put("icon_emoji", ":ghost:");
+                json.put("icon_url", icon);
 
                 post.addParameter("payload", json.toString());
                 post.getParams().setContentCharset("UTF-8");
@@ -90,7 +90,7 @@ public class StandardMattermostService implements MattermostService {
         return client;
     }
 
-    void setHost(String host) {
-        this.host = host;
+    void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
     }
 }

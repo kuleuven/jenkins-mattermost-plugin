@@ -4,8 +4,8 @@ public class StandardMattermostServiceStub extends StandardMattermostService {
 
     private HttpClientStub httpClientStub;
 
-    public StandardMattermostServiceStub(String host, String token, String roomId) {
-        super(host, token, roomId);
+    public StandardMattermostServiceStub(String host, String roomId, String icon) {
+        super(host, roomId, icon);
     }
 
     @Override
