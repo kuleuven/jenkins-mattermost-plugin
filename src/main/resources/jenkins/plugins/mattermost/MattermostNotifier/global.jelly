@@ -19,7 +19,7 @@
         <f:textbox field="room" name="mattermostRoom" value="${descriptor.getRoom()}" />
     </f:entry>
     <f:entry title="Icon to use" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostIcon.html">
-        <f:textbox field="room" name="mattermostIcon" value="${descriptor.getIcon()}" />
+        <f:textbox field="icon" name="mattermostIcon" value="${descriptor.getIcon()}" />
     </f:entry>
     <f:entry title="Build Server URL" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostBuildServerUrl.html">
         <f:textbox field="buildServerUrl" name="mattermostBuildServerUrl" value="${descriptor.getBuildServerUrl()}" />

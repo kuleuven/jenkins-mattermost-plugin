@@ -38,7 +38,7 @@ public class StandardMattermostService implements MattermostService {
         boolean result = true;
         for (String roomId : roomIds) {
             String url = endpoint;
-            logger.info("Posting: to " + roomId + " on " + " using " + url +": " + message + " " + color);
+            logger.info("Posting: to " + roomId + " icon: " + icon + ", on " + url +": " + message + " " + color);
             HttpClient client = getHttpClient();
             PostMethod post = new PostMethod(url);
             JSONObject json = new JSONObject();

@@ -316,7 +316,7 @@ public class MattermostNotifier extends Notifier {
                     targetBuildServerUrl = this.buildServerUrl;
                 }
                 MattermostService testMattermostService = getMattermostService(targetEndpoint, targetRoom, targetIcon);
-                String message = "Mattermost/Jenkins plugin: you're all set on " + targetBuildServerUrl;
+                String message = "Mattermost/Jenkins plugin: you're all set! (using " + targetIcon + ")";
                 boolean success = testMattermostService.publish(message, "good");
                 return success ? FormValidation.ok("Success") : FormValidation.error("Failure");
             } catch (Exception e) {
