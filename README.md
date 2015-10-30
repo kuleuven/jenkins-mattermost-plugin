@@ -15,7 +15,7 @@ Which was, in turn, a fork of the Campfire plugin.
 1. Set up a Mattermost server
 2. Configure an incoming webhook
 3. Install this plugin on your Jenkins server
-4. Configure it in your Jenkins job and **add it as a Post-build action**.
+4. **Add it as a Post-build action** in your Jenkins job.
 
 # Developer instructions
 
