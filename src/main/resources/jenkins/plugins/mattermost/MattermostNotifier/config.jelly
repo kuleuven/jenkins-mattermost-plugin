@@ -61,6 +61,6 @@
 
         <f:validateButton
                 title="${%Test Connection}" progress="${%Testing...}"
-                method="testConnection" with="mattermostEndpoint,mattermostRoom"/>
+                method="testConnection" with="mattermostEndpoint,mattermostRoom,mattermostIcon"/>
     </f:advanced>
 </j:jelly>
