@@ -19,7 +19,7 @@
 
     <artifactId>mattermost</artifactId>
     <packaging>hpi</packaging>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
     <name>Mattermost Notification Plugin</name>
     <description>A Build status publisher that notifies channels on a Mattermost server</description>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Mattermost+Plugin</url>
@@ -37,10 +37,10 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com/jovandeginste/jenkins-mattermost-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jovandeginste/jenkins-mattermost-plugin.git</developerConnection>
-        <url>https://github.com/jovandeginste/jenkins-mattermost-plugin</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:ssh://git@github.com/jenkinsci/mattermost-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/mattermost-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/mattermost-plugin</url>
+        <tag>mattermost-1.1</tag>
     </scm>
 
     <dependencies>
