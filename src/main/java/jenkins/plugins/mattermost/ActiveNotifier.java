@@ -223,33 +223,33 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
         static String getStatusMessage(AbstractBuild r) {
             if (r.isBuilding()) {
-                return "Starting...";
+                return ":pray: Starting...";
             }
             Result result = r.getResult();
             Run previousBuild = r.getProject().getLastBuild().getPreviousBuild();
             Result previousResult = (previousBuild != null) ? previousBuild.getResult() : Result.SUCCESS;
             if (result == Result.SUCCESS && previousResult == Result.FAILURE) {
-                return "Back to normal";
+                return ":white_check_mark: Back to normal";
             }
             if (result == Result.FAILURE && previousResult == Result.FAILURE) {
-                return "Still Failing";
+                return ":no_entry_sign: Still Failing";
             }
             if (result == Result.SUCCESS) {
-                return "Success";
+                return ":white_check_mark: Success";
             }
             if (result == Result.FAILURE) {
-                return "Failure";
+                return ":no_entry_sign: Failure";
             }
             if (result == Result.ABORTED) {
-                return "Aborted";
+                return ":warning: Aborted";
             }
             if (result == Result.NOT_BUILT) {
-                return "Not built";
+                return ":warning: Not built";
             }
             if (result == Result.UNSTABLE) {
-                return "Unstable";
+                return ":warning: Unstable";
             }
-            return "Unknown";
+            return ":question: Unknown";
         }
 
         public MessageBuilder append(String string) {
