@@ -133,7 +133,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
             authors.add(entry.getAuthor().getDisplayName());
         }
         MessageBuilder message = new MessageBuilder(notifier, r);
-        message.append("Started by changes from ");
+        message.append(":pray: Started by changes from ");
         message.append(StringUtils.join(authors, ", "));
         message.append(" (");
         message.append(files.size());
