@@ -1,11 +1,13 @@
 package jenkins.plugins.mattermost;
 
+import hudson.ProxyConfiguration;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.Collections;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 public class StandardMattermostServiceTest {
 
@@ -91,4 +93,30 @@ public class StandardMattermostServiceTest {
         service.setHttpClient(httpClientStub);
         assertTrue(service.publish("message"));
     }
+
+    @Test
+    public void isProxyRequiredEmtyNoProxyHostsReturnsTrue() {
+        StandardMattermostService service = new StandardMattermostService("http://mymattermost.endpoint.com","roomid","icon");
+        assertTrue(service.isProxyRequired(Collections.<Pattern>emptyList()));
+    }
+
+    @Test
+    public void isProxyRequiredNoProxyHostsDoesNotMatchReturnsTrue() {
+        StandardMattermostService service = new StandardMattermostService("http://mymattermost.endpoint.com","roomid","icon");
+        assertTrue(service.isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns("*.internal.com")));
+    }
+
+    @Test
+    public void isProxyRequiredNoProxyHostsMatchReturnsFalse() {
+        StandardMattermostService service = new StandardMattermostService("http://mymattermost.endpoint.com","roomid","icon");
+        assertFalse(service.isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns("*.endpoint.com")));
+    }
+
+    @Test
+    public void isProxyRequiredInvalidEndPointReturnsTrue() {
+        StandardMattermostService service = new StandardMattermostService("htt://mymattermost.endpoint.com","roomid","icon");
+        assertTrue(service.isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns("*.internal.com")));
+    }
+
+
 }
