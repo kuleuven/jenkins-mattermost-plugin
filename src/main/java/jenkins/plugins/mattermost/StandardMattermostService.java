@@ -7,6 +7,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
@@ -39,7 +40,12 @@ public class StandardMattermostService implements MattermostService {
         boolean result = true;
         for (String roomId : roomIds) {
             String url = endpoint;
-            logger.info("Posting: to " + roomId + " icon: " + icon + ", on " + url + ": " + message + " " + color);
+						String roomIdString = roomId;
+						if (StringUtils.isEmpty(roomIdString)) {
+							roomIdString = "(default)";
+						}
+
+            logger.info("Posting: to " + roomIdString + "@" + url + ": " + message + " (" + color + ")");
             HttpClient client = getHttpClient();
             PostMethod post = new PostMethod(url);
             JSONObject json = new JSONObject();
