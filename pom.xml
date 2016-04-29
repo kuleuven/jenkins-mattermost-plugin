@@ -40,7 +40,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/mattermost-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/mattermost-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/mattermost-plugin</url>
-        <tag>mattermost-1.2</tag>
+        <tag>mattermost-1.5</tag>
     </scm>
 
     <dependencies>
