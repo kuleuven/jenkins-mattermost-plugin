@@ -9,6 +9,7 @@ import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -51,8 +52,26 @@ public class StandardMattermostService implements MattermostService {
 			JSONObject json = new JSONObject();
 
 			try {
+				JSONObject field = new JSONObject();
+				field.put("short", false);
+				field.put("value", message);
+				JSONArray fields = new JSONArray();
+				fields.put(field);
+
+				JSONObject attachment = new JSONObject();
+				attachment.put("fallback", message);
+				attachment.put("color", color);
+				attachment.put("fields", fields);
+				JSONArray mrkdwn = new JSONArray();
+				mrkdwn.put("pretext");
+				mrkdwn.put("text");
+				mrkdwn.put("fields");
+				attachment.put("mrkdwn_in", mrkdwn);
+				JSONArray attachments = new JSONArray();
+				attachments.put(attachment);
+				json.put("attachments", attachments);
+
 				if (!roomId.isEmpty()) json.put("channel", roomId);
-				json.put("text", message);
 				json.put("username", "jenkins");
 				json.put("icon_url", icon);
 
