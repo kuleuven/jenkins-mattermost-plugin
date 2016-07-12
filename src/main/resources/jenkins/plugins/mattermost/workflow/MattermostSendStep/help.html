@@ -1,10 +1,10 @@
 <div>
-    Simple step for sending a Slack message to specified channel.<br>
-    Use the advanced settings to override the Slack Plugin global configuration to include: <code>token</code> and <code>channel</code>.<br>
+    Simple step for sending a Mattermost message to specified channel.<br>
+    Use the advanced settings to override the Mattermost Plugin global configuration to include: <code>endpoint</code>, <code>channel</code> and <code>icon</code>.<br>
     Please see the Slack Plugin global configuration for more details on the fields.
 
     Usage Example:<br>
     <code>
-        slackSend "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER}  (<${env.BUILD_URL}|Open>)"
+        mattermostSend "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER}  (<${env.BUILD_URL}|Open>)"
     </code>
 </div>

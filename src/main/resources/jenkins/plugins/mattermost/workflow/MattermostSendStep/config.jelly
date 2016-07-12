@@ -11,10 +11,10 @@
         <f:entry field="channel" title="Channel">
             <f:textbox />
         </f:entry>
-        <f:entry field="token" title="Integration Token">
+        <f:entry field="icon" title="Custom icon">
             <f:textbox />
         </f:entry>
-        <f:entry field="teamDomain" title="Team Domain">
+        <f:entry field="endpoint" title="Mattermost endpoint (url + token)">
             <f:textbox />
         </f:entry>
         <f:entry field="failOnError">

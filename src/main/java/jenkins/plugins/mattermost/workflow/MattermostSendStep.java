@@ -5,10 +5,7 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
-import jenkins.plugins.slack.Messages;
-import jenkins.plugins.mattermost.SlackNotifier;
-import jenkins.plugins.mattermost.SlackService;
-import jenkins.plugins.mattermost.StandardSlackService;
+import jenkins.plugins.mattermost.*;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
@@ -26,9 +23,9 @@ public class MattermostSendStep extends AbstractStepImpl {
 
     private final @Nonnull String message;
     private String color;
-    private String token;
     private String channel;
-    private String teamDomain;
+    private String endpoint;
+    private String icon;
     private boolean failOnError;
 
 
@@ -46,14 +43,6 @@ public class MattermostSendStep extends AbstractStepImpl {
         this.color = Util.fixEmpty(color);
     }
 
-    public String getToken() {
-        return token;
-    }
-
-    @DataBoundSetter
-    public void setToken(String token) {
-        this.token = Util.fixEmpty(token);
-    }
 
     public String getChannel() {
         return channel;
@@ -64,13 +53,22 @@ public class MattermostSendStep extends AbstractStepImpl {
         this.channel = Util.fixEmpty(channel);
     }
 
-    public String getTeamDomain() {
-        return teamDomain;
+    public String getEndpoint() {
+        return endpoint;
     }
 
     @DataBoundSetter
-    public void setTeamDomain(String teamDomain) {
-        this.teamDomain = Util.fixEmpty(teamDomain);
+    public void setEndpoint(String endpoint) {
+        this.endpoint = Util.fixEmpty(endpoint);
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    @DataBoundSetter
+    public void setIcon(String icon) {
+        this.icon = Util.fixEmpty(icon);
     }
 
     public boolean isFailOnError() {
@@ -96,12 +94,12 @@ public class MattermostSendStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "slackSend";
+            return "mattermostSend";
         }
 
         @Override
         public String getDisplayName() {
-            return Messages.SlackSendStepDisplayName();
+            return "Send Mattermost message";
         }
     }
 
@@ -124,31 +122,31 @@ public class MattermostSendStep extends AbstractStepImpl {
             try {
                 jenkins = Jenkins.getInstance();
             } catch (NullPointerException ne) {
-                listener.error(Messages.NotificationFailedWithException(ne));
+                listener.error(String.format("Mattermost notification failed with exception: %s", ne), ne);
                 return null;
             }
-            SlackNotifier.DescriptorImpl slackDesc = jenkins.getDescriptorByType(SlackNotifier.DescriptorImpl.class);
-            String team = step.teamDomain != null ? step.teamDomain : slackDesc.getTeamDomain();
-            String token = step.token != null ? step.token : slackDesc.getToken();
+            MattermostNotifier.DescriptorImpl slackDesc = jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
+            String team = step.endpoint != null ? step.endpoint : slackDesc.getEndpoint();
             String channel = step.channel != null ? step.channel : slackDesc.getRoom();
+            String icon = step.icon != null ? step.icon: slackDesc.getIcon();
             String color = step.color != null ? step.color : "";
 
             //placing in console log to simplify testing of retrieving values from global config or from step field; also used for tests
-            listener.getLogger().println(Messages.SlackSendStepConfig(step.teamDomain == null, step.token == null, step.channel == null, step.color == null));
+            listener.getLogger().printf("Mattermost Send Pipeline step configured values from global config - connector: %s, icon: %s, channel: %s, color: %s", step.endpoint == null, step.icon == null, step.channel == null, step.color == null);
 
-            SlackService slackService = getSlackService(team, token, channel);
+            MattermostService slackService = getMattermostService(team, channel, icon);
             boolean publishSuccess = slackService.publish(step.message, color);
             if (!publishSuccess && step.failOnError) {
-                throw new AbortException(Messages.NotificationFailed());
+                throw new AbortException("Mattermost notification failed. See Jenkins logs for details.");
             } else if (!publishSuccess) {
-                listener.error(Messages.NotificationFailed());
+                listener.error("Slack notification failed. See Jenkins logs for details.");
             }
             return null;
         }
 
         //streamline unit testing
-        SlackService getSlackService(String team, String token, String channel) {
-            return new StandardSlackService(team, token, channel);
+        MattermostService getMattermostService(String team, String channel, String icon) {
+            return new StandardMattermostService(team, channel, icon);
         }
 
     }

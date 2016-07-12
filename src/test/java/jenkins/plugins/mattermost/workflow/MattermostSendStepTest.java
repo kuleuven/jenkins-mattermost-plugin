@@ -2,9 +2,8 @@ package jenkins.plugins.mattermost.workflow;
 
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
-import jenkins.plugins.slack.Messages;
-import jenkins.plugins.mattermost.SlackNotifier;
-import jenkins.plugins.mattermost.SlackService;
+import jenkins.plugins.mattermost.MattermostNotifier;
+import jenkins.plugins.mattermost.MattermostService;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +25,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
  * Traditional Unit tests, allows testing null Jenkins,getInstance()
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Jenkins.class,MattermostSendStep.class})
+@PrepareForTest({Jenkins.class, MattermostSendStep.class})
 public class MattermostSendStepTest {
 
     @Mock
@@ -38,24 +37,24 @@ public class MattermostSendStepTest {
     @Mock
     StepContext stepContextMock;
     @Mock
-    SlackService slackServiceMock;
+    MattermostService mattermostServiceMock;
     @Mock
     Jenkins jenkins;
     @Mock
-    SlackNotifier.DescriptorImpl slackDescMock;
+    MattermostNotifier.DescriptorImpl mattermostDescMock;
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(Jenkins.class);
-        when(jenkins.getDescriptorByType(SlackNotifier.DescriptorImpl.class)).thenReturn(slackDescMock);
+        when(jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class)).thenReturn(mattermostDescMock);
     }
 
     @Test
     public void testStepOverrides() throws Exception {
         MattermostSendStep.SlackSendStepExecution stepExecution = spy(new MattermostSendStep.SlackSendStepExecution());
         MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
-        mattermostSendStep.setToken("token");
-        mattermostSendStep.setTeamDomain("teamDomain");
+        mattermostSendStep.setIcon("icon");
+        mattermostSendStep.setEndpoint("endpoint");
         mattermostSendStep.setChannel("channel");
         mattermostSendStep.setColor("good");
         stepExecution.step = mattermostSendStep;
@@ -64,18 +63,18 @@ public class MattermostSendStepTest {
 
         stepExecution.listener = taskListenerMock;
 
-        when(slackDescMock.getToken()).thenReturn("differentToken");
+        when(mattermostDescMock.getIcon()).thenReturn("differentIcon");
 
 
         when(taskListenerMock.getLogger()).thenReturn(printStreamMock);
         doNothing().when(printStreamMock).println();
 
-        when(stepExecution.getSlackService(anyString(), anyString(), anyString())).thenReturn(slackServiceMock);
-        when(slackServiceMock.publish(anyString(), anyString())).thenReturn(true);
+        when(stepExecution.getMattermostService(anyString(), anyString(), anyString())).thenReturn(mattermostServiceMock);
+        when(mattermostServiceMock.publish(anyString(), anyString())).thenReturn(true);
 
         stepExecution.run();
-        verify(stepExecution, times(1)).getSlackService("teamDomain", "token", "channel");
-        verify(slackServiceMock, times(1)).publish("message", "good");
+        verify(stepExecution, times(1)).getMattermostService("endpoint", "channel", "icon");
+        verify(mattermostServiceMock, times(1)).publish("message", "good");
         assertFalse(stepExecution.step.isFailOnError());
     }
 
@@ -89,20 +88,20 @@ public class MattermostSendStepTest {
 
         stepExecution.listener = taskListenerMock;
 
-        when(slackDescMock.getTeamDomain()).thenReturn("globalTeamDomain");
-        when(slackDescMock.getToken()).thenReturn("globalToken");
-        when(slackDescMock.getRoom()).thenReturn("globalChannel");
+        when(mattermostDescMock.getEndpoint()).thenReturn("globalEndpoint");
+        when(mattermostDescMock.getIcon()).thenReturn("globalIcon");
+        when(mattermostDescMock.getRoom()).thenReturn("globalChannel");
 
         when(taskListenerMock.getLogger()).thenReturn(printStreamMock);
         doNothing().when(printStreamMock).println();
 
-        when(stepExecution.getSlackService(anyString(), anyString(), anyString())).thenReturn(slackServiceMock);
+        when(stepExecution.getMattermostService(anyString(), anyString(), anyString())).thenReturn(mattermostServiceMock);
 
         stepExecution.run();
-        verify(stepExecution, times(1)).getSlackService("globalTeamDomain", "globalToken", "globalChannel");
-        verify(slackServiceMock, times(1)).publish("message", "");
-        assertNull(stepExecution.step.getTeamDomain());
-        assertNull(stepExecution.step.getToken());
+        verify(stepExecution, times(1)).getMattermostService("globalEndpoint","globalChannel", "globalIcon");
+        verify(mattermostServiceMock, times(1)).publish("message", "");
+        assertNull(stepExecution.step.getEndpoint());
+        assertNull(stepExecution.step.getIcon());
         assertNull(stepExecution.step.getChannel());
         assertNull(stepExecution.step.getColor());
     }
@@ -122,10 +121,10 @@ public class MattermostSendStepTest {
         when(taskListenerMock.getLogger()).thenReturn(printStreamMock);
         doNothing().when(printStreamMock).println();
 
-        when(stepExecution.getSlackService(anyString(), anyString(), anyString())).thenReturn(slackServiceMock);
+        when(stepExecution.getMattermostService(anyString(), anyString(), anyString())).thenReturn(mattermostServiceMock);
 
         stepExecution.run();
-        verify(slackServiceMock, times(1)).publish("message", "");
+        verify(mattermostServiceMock, times(1)).publish("message", "");
         assertNull(stepExecution.step.getColor());
     }
 
@@ -143,6 +142,6 @@ public class MattermostSendStepTest {
         doNothing().when(printStreamMock).println();
 
         stepExecution.run();
-        verify(taskListenerMock, times(1)).error(Messages.NotificationFailedWithException(anyString()));
+        verify(taskListenerMock, times(1)).error(anyString(), any(Exception.class));
     }
 }
