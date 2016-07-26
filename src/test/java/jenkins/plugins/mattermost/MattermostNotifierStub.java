@@ -5,11 +5,11 @@ public class MattermostNotifierStub extends MattermostNotifier {
 	public MattermostNotifierStub(String host, String room, String icon, String buildServerUrl,
 			String sendAs, boolean startNotification, boolean notifyAborted, boolean notifyFailure,
 			boolean notifyNotBuilt, boolean notifySuccess, boolean notifyUnstable, boolean notifyBackToNormal,
-			boolean notifyRepeatedFailure, boolean includeTestSummary, boolean showCommitList,
+			boolean notifyRepeatedFailure, boolean includeTestSummary, CommitInfoChoice commitInfoChoice,
 			boolean includeCustomMessage, String customMessage) {
 		super(host, room, icon, buildServerUrl, sendAs, startNotification, notifyAborted, notifyFailure,
 				notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
-				includeTestSummary, showCommitList, includeCustomMessage, customMessage);
+				includeTestSummary, commitInfoChoice, includeCustomMessage, customMessage);
 	}
 
 	public static class DescriptorImplStub extends MattermostNotifier.DescriptorImpl {

@@ -1,6 +1,7 @@
 package jenkins.plugins.mattermost;
 
 import hudson.EnvVars;
+import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
@@ -60,6 +61,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
 				MessageBuilder message = new MessageBuilder(notifier, build);
 				message.append(causeAction.getShortDescription());
 				notifyStart(build, message.appendOpenLink().toString());
+                // Cause was found, exit early to prevent double-message
+                return;
 			}
 		}
 
@@ -93,9 +96,12 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		} while (previousBuild != null && previousBuild.getResult() == Result.ABORTED);
 		Result previousResult = (previousBuild != null) ? previousBuild.getResult() : Result.SUCCESS;
 		if ((result == Result.ABORTED && notifier.getNotifyAborted())
-				|| (result == Result.FAILURE
-					&& (previousResult != Result.FAILURE || notifier.getNotifyRepeatedFailure())
+                || (result == Result.FAILURE //notify only on single failed build
+                    && previousResult != Result.FAILURE
 					&& notifier.getNotifyFailure())
+                || (result == Result.FAILURE //notify only on repeated failures
+                    && previousResult == Result.FAILURE
+                    && notifier.getNotifyRepeatedFailure())
 				|| (result == Result.NOT_BUILT && notifier.getNotifyNotBuilt())
 				|| (result == Result.SUCCESS
 					&& (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
@@ -104,8 +110,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
 				|| (result == Result.UNSTABLE && notifier.getNotifyUnstable())) {
 			getMattermost(r).publish(getBuildStatusMessage(r, notifier.includeTestSummary(),
 						notifier.includeCustomMessage()), getBuildColor(r));
-			if (notifier.getShowCommitList()) {
-				getMattermost(r).publish(getCommitList(r), getBuildColor(r));
+            if (notifier.getCommitInfoChoice().showAnything()) {
+                getMattermost(r).publish(getCommitList(r), getBuildColor(r));
 			}
 				}
 	}
@@ -168,8 +174,13 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		Set<String> commits = new HashSet<String>();
 		for (Entry entry : entries) {
 			StringBuffer commit = new StringBuffer();
+            CommitInfoChoice commitInfoChoice = notifier.getCommitInfoChoice();
+            if (commitInfoChoice.showTitle()) {
 			commit.append(entry.getMsg());
+            }
+            if (commitInfoChoice.showAuthor()) {
 			commit.append(" [").append(entry.getAuthor().getDisplayName()).append("]");
+            }
 			commits.add(commit.toString());
 		}
 		MessageBuilder message = new MessageBuilder(notifier, r);
@@ -205,6 +216,16 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
 	public static class MessageBuilder {
 
+        private static final String STARTING_STATUS_MESSAGE = ":pray: Starting...",
+                                    BACK_TO_NORMAL_STATUS_MESSAGE = ":white_check_mark: Back to normal",
+                                    STILL_FAILING_STATUS_MESSAGE = ":no_entry_sign: Still Failing",
+                                    SUCCESS_STATUS_MESSAGE = ":white_check_mark: Success",
+                                    FAILURE_STATUS_MESSAGE = ":no_entry_sign: Failure",
+                                    ABORTED_STATUS_MESSAGE = ":warning: Aborted",
+                                    NOT_BUILT_STATUS_MESSAGE = ":warning: Not built",
+                                    UNSTABLE_STATUS_MESSAGE = ":warning: Unstable",
+                                    UNKNOWN_STATUS_MESSAGE = ":question: Unknown";
+
 		private StringBuffer message;
 		private MattermostNotifier notifier;
 		private AbstractBuild build;
@@ -223,33 +244,63 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
 		static String getStatusMessage(AbstractBuild r) {
 			if (r.isBuilding()) {
-				return ":pray: Starting...";
+                return STARTING_STATUS_MESSAGE;
 			}
 			Result result = r.getResult();
+            Result previousResult;
 			Run previousBuild = r.getProject().getLastBuild().getPreviousBuild();
-			Result previousResult = (previousBuild != null) ? previousBuild.getResult() : Result.SUCCESS;
-			if (result == Result.SUCCESS && previousResult == Result.FAILURE) {
-				return ":white_check_mark: Back to normal";
+            Run previousSuccessfulBuild = r.getPreviousSuccessfulBuild();
+            boolean buildHasSucceededBefore = previousSuccessfulBuild != null;
+
+            /*
+             * If the last build was aborted, go back to find the last non-aborted build.
+             * This is so that aborted builds do not affect build transitions.
+             * I.e. if build 1 was failure, build 2 was aborted and build 3 was a success the transition
+             * should be failure -> success (and therefore back to normal) not aborted -> success.
+             */
+            Run lastNonAbortedBuild = previousBuild;
+            while(lastNonAbortedBuild != null && lastNonAbortedBuild.getResult() == Result.ABORTED) {
+                lastNonAbortedBuild = lastNonAbortedBuild.getPreviousBuild();
+            }
+
+
+            /* If all previous builds have been aborted, then use
+             * SUCCESS as a default status so an aborted message is sent
+             */
+            if(lastNonAbortedBuild == null) {
+                previousResult = Result.SUCCESS;
+            } else {
+                previousResult = lastNonAbortedBuild.getResult();
+            }
+
+            /* Back to normal should only be shown if the build has actually succeeded at some point.
+             * Also, if a build was previously unstable and has now succeeded the status should be
+             * "Back to normal"
+             */
+            if (result == Result.SUCCESS
+                    && (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
+                    && buildHasSucceededBefore) {
+                return BACK_TO_NORMAL_STATUS_MESSAGE;
 			}
 			if (result == Result.FAILURE && previousResult == Result.FAILURE) {
-				return ":no_entry_sign: Still Failing";
+                return STILL_FAILING_STATUS_MESSAGE;
 			}
 			if (result == Result.SUCCESS) {
-				return ":white_check_mark: Success";
+                return SUCCESS_STATUS_MESSAGE;
 			}
 			if (result == Result.FAILURE) {
-				return ":no_entry_sign: Failure";
+                return FAILURE_STATUS_MESSAGE;
 			}
 			if (result == Result.ABORTED) {
-				return ":warning: Aborted";
+                return ABORTED_STATUS_MESSAGE;
 			}
 			if (result == Result.NOT_BUILT) {
-				return ":warning: Not built";
+                return NOT_BUILT_STATUS_MESSAGE;
 			}
 			if (result == Result.UNSTABLE) {
-				return ":warning: Unstable";
+                return UNSTABLE_STATUS_MESSAGE;
 			}
-			return ":question: Unknown";
+            return UNKNOWN_STATUS_MESSAGE;
 		}
 
 		public MessageBuilder append(String string) {
@@ -278,7 +329,13 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
 		public MessageBuilder appendDuration() {
 			message.append(" after ");
-			message.append(build.getDurationString());
+            String durationString;
+            if(message.toString().contains(BACK_TO_NORMAL_STATUS_MESSAGE)){
+                durationString = createBackToNormalDurationString();
+            } else {
+                durationString = build.getDurationString();
+            }
+            message.append(durationString);
 			return this;
 		}
 
@@ -313,6 +370,18 @@ public class ActiveNotifier implements FineGrainedNotifier {
 			message.append(envVars.expand(customMessage));
 			return this;
 		}
+
+        private String createBackToNormalDurationString(){
+            Run previousSuccessfulBuild = build.getPreviousSuccessfulBuild();
+            long previousSuccessStartTime = previousSuccessfulBuild.getStartTimeInMillis();
+            long previousSuccessDuration = previousSuccessfulBuild.getDuration();
+            long previousSuccessEndTime = previousSuccessStartTime + previousSuccessDuration;
+            long buildStartTime = build.getStartTimeInMillis();
+            long buildDuration = build.getDuration();
+            long buildEndTime = buildStartTime + buildDuration;
+            long backToNormalDuration = buildEndTime - previousSuccessEndTime;
+            return Util.getTimeSpanString(backToNormalDuration);
+        }
 
 		public String escape(String string) {
 			string = string.replace("&", "&amp;");

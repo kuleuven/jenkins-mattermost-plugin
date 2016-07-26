@@ -7,20 +7,24 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
+import hudson.model.listeners.ItemListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import jenkins.model.JenkinsLocationConfiguration;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.export.Exported;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MattermostNotifier extends Notifier {
@@ -41,7 +45,7 @@ public class MattermostNotifier extends Notifier {
 	private boolean notifyBackToNormal;
 	private boolean notifyRepeatedFailure;
 	private boolean includeTestSummary;
-	private boolean showCommitList;
+    private CommitInfoChoice commitInfoChoice;
 	private boolean includeCustomMessage;
 	private String customMessage;
 
@@ -84,8 +88,8 @@ public class MattermostNotifier extends Notifier {
 		return notifySuccess;
 	}
 
-	public boolean getShowCommitList() {
-		return showCommitList;
+    public CommitInfoChoice getCommitInfoChoice() {
+        return commitInfoChoice;
 	}
 
 	public boolean getNotifyAborted() {
@@ -128,7 +132,7 @@ public class MattermostNotifier extends Notifier {
 	public MattermostNotifier(final String endpoint, final String room, final String icon, final String buildServerUrl,
 			final String sendAs, final boolean startNotification, final boolean notifyAborted, final boolean notifyFailure,
 			final boolean notifyNotBuilt, final boolean notifySuccess, final boolean notifyUnstable, final boolean notifyBackToNormal,
-			final boolean notifyRepeatedFailure, final boolean includeTestSummary, final boolean showCommitList,
+			final boolean notifyRepeatedFailure, final boolean includeTestSummary, final CommitInfoChoice commitInfoChoice,
 			boolean includeCustomMessage, String customMessage) {
 		super();
 		this.endpoint = endpoint;
@@ -145,7 +149,7 @@ public class MattermostNotifier extends Notifier {
 		this.notifyBackToNormal = notifyBackToNormal;
 		this.notifyRepeatedFailure = notifyRepeatedFailure;
 		this.includeTestSummary = includeTestSummary;
-		this.showCommitList = showCommitList;
+        this.commitInfoChoice = commitInfoChoice;
 		this.includeCustomMessage = includeCustomMessage;
 		this.customMessage = customMessage;
 	}
@@ -211,6 +215,8 @@ public class MattermostNotifier extends Notifier {
 		private String buildServerUrl;
 		private String sendAs;
 
+        public static final CommitInfoChoice[] COMMIT_INFO_CHOICES = CommitInfoChoice.values();
+
 		public DescriptorImpl() {
 			load();
 		}
@@ -259,12 +265,12 @@ public class MattermostNotifier extends Notifier {
 			boolean notifyBackToNormal = "true".equals(sr.getParameter("mattermostNotifyBackToNormal"));
 			boolean notifyRepeatedFailure = "true".equals(sr.getParameter("mattermostNotifyRepeatedFailure"));
 			boolean includeTestSummary = "true".equals(sr.getParameter("includeTestSummary"));
-			boolean showCommitList = "true".equals(sr.getParameter("mattermostShowCommitList"));
+            CommitInfoChoice commitInfoChoice = CommitInfoChoice.forDisplayName(sr.getParameter("slackCommitInfoChoice"));
 			boolean includeCustomMessage = "on".equals(sr.getParameter("includeCustomMessage"));
 			String customMessage = sr.getParameter("customMessage");
 			return new MattermostNotifier(endpoint, room, icon, buildServerUrl, sendAs, startNotification, notifyAborted,
 					notifyFailure, notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
-					includeTestSummary, showCommitList, includeCustomMessage, customMessage);
+					includeTestSummary, commitInfoChoice, includeCustomMessage, customMessage);
 		}
 
 		@Override
@@ -329,4 +335,202 @@ public class MattermostNotifier extends Notifier {
 			}
 		}
 	}
+
+    @Deprecated
+    public static class MattermostJobProperty extends hudson.model.JobProperty<AbstractProject<?, ?>> {
+
+        private String endpoint;
+        private String room;
+        private String icon;
+        private boolean startNotification;
+        private boolean notifySuccess;
+        private boolean notifyAborted;
+        private boolean notifyNotBuilt;
+        private boolean notifyUnstable;
+        private boolean notifyFailure;
+        private boolean notifyBackToNormal;
+        private boolean notifyRepeatedFailure;
+        private boolean includeTestSummary;
+        private boolean showCommitList;
+        private boolean includeCustomMessage;
+        private String customMessage;
+
+        @DataBoundConstructor
+        public MattermostJobProperty(String teamDomain,
+									 String room,
+									 String icon,
+									 boolean startNotification,
+									 boolean notifyAborted,
+									 boolean notifyFailure,
+									 boolean notifyNotBuilt,
+									 boolean notifySuccess,
+									 boolean notifyUnstable,
+									 boolean notifyBackToNormal,
+									 boolean notifyRepeatedFailure,
+									 boolean includeTestSummary,
+									 boolean showCommitList,
+									 boolean includeCustomMessage,
+									 String customMessage) {
+            this.endpoint = teamDomain;
+            this.room = room;
+			this.icon = icon;
+			this.startNotification = startNotification;
+            this.notifyAborted = notifyAborted;
+            this.notifyFailure = notifyFailure;
+            this.notifyNotBuilt = notifyNotBuilt;
+            this.notifySuccess = notifySuccess;
+            this.notifyUnstable = notifyUnstable;
+            this.notifyBackToNormal = notifyBackToNormal;
+            this.notifyRepeatedFailure = notifyRepeatedFailure;
+            this.includeTestSummary = includeTestSummary;
+            this.showCommitList = showCommitList;
+            this.includeCustomMessage = includeCustomMessage;
+            this.customMessage = customMessage;
+        }
+
+        @Exported
+        public String getEndpoint() {
+            return endpoint;
+        }
+
+        @Exported
+        public String getIcon() {
+            return icon;
+        }
+
+        @Exported
+        public String getRoom() {
+            return room;
+        }
+
+        @Exported
+        public boolean getStartNotification() {
+            return startNotification;
+        }
+
+        @Exported
+        public boolean getNotifySuccess() {
+            return notifySuccess;
+        }
+
+        @Exported
+        public boolean getShowCommitList() {
+            return showCommitList;
+        }
+
+        @Override
+        public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+            return super.prebuild(build, listener);
+        }
+
+        @Exported
+        public boolean getNotifyAborted() {
+            return notifyAborted;
+        }
+
+        @Exported
+        public boolean getNotifyFailure() {
+            return notifyFailure;
+        }
+
+        @Exported
+        public boolean getNotifyNotBuilt() {
+            return notifyNotBuilt;
+        }
+
+        @Exported
+        public boolean getNotifyUnstable() {
+            return notifyUnstable;
+        }
+
+        @Exported
+        public boolean getNotifyBackToNormal() {
+            return notifyBackToNormal;
+        }
+
+        @Exported
+        public boolean includeTestSummary() {
+            return includeTestSummary;
+        }
+
+        @Exported
+        public boolean getNotifyRepeatedFailure() {
+            return notifyRepeatedFailure;
+        }
+
+        @Exported
+        public boolean includeCustomMessage() {
+            return includeCustomMessage;
+        }
+
+        @Exported
+        public String getCustomMessage() {
+            return customMessage;
+        }
+
+    }
+
+    @Extension public static final class Migrator extends ItemListener {
+        @SuppressWarnings("deprecation")
+        @Override
+        public void onLoaded() {
+            logger.info("Starting Settings Migration Process");
+            for (AbstractProject<?, ?> p : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
+                logger.info("processing Job: " + p.getName());
+
+                final MattermostJobProperty mattermostJobProperty = p.getProperty(MattermostJobProperty.class);
+
+                if (mattermostJobProperty == null) {
+                    logger.info(String
+                            .format("Configuration is already up to date for \"%s\", skipping migration",
+                                    p.getName()));
+                    continue;
+                }
+
+                MattermostNotifier mattermostNotifier = p.getPublishersList().get(MattermostNotifier.class);
+
+                if (mattermostNotifier == null) {
+                    logger.info(String
+                            .format("Configuration does not have a notifier for \"%s\", not migrating settings",
+                                    p.getName()));
+                } else {
+
+                    //map settings
+                    if (StringUtils.isBlank(mattermostNotifier.endpoint)) {
+                        mattermostNotifier.endpoint = mattermostJobProperty.getEndpoint();
+                    }
+                    if (StringUtils.isBlank(mattermostNotifier.icon)) {
+                        mattermostNotifier.icon = mattermostJobProperty.getIcon();
+                    }
+                    if (StringUtils.isBlank(mattermostNotifier.room)) {
+                        mattermostNotifier.room = mattermostJobProperty.getRoom();
+                    }
+
+                    mattermostNotifier.startNotification = mattermostJobProperty.getStartNotification();
+
+                    mattermostNotifier.notifyAborted = mattermostJobProperty.getNotifyAborted();
+                    mattermostNotifier.notifyFailure = mattermostJobProperty.getNotifyFailure();
+                    mattermostNotifier.notifyNotBuilt = mattermostJobProperty.getNotifyNotBuilt();
+                    mattermostNotifier.notifySuccess = mattermostJobProperty.getNotifySuccess();
+                    mattermostNotifier.notifyUnstable = mattermostJobProperty.getNotifyUnstable();
+                    mattermostNotifier.notifyBackToNormal = mattermostJobProperty.getNotifyBackToNormal();
+                    mattermostNotifier.notifyRepeatedFailure = mattermostJobProperty.getNotifyRepeatedFailure();
+
+                    mattermostNotifier.includeTestSummary = mattermostJobProperty.includeTestSummary();
+					mattermostNotifier.commitInfoChoice = mattermostJobProperty.getShowCommitList() ? CommitInfoChoice.AUTHORS_AND_TITLES : CommitInfoChoice.NONE;
+                    mattermostNotifier.includeCustomMessage = mattermostJobProperty.includeCustomMessage();
+                    mattermostNotifier.customMessage = mattermostJobProperty.getCustomMessage();
+                }
+
+                try {
+                    //property section is not used anymore - remove
+                    p.removeProperty(MattermostJobProperty.class);
+                    p.save();
+                    logger.info("Configuration updated successfully");
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, e.getMessage(), e);
+                }
+            }
+        }
+    }
 }
