@@ -39,9 +39,23 @@ public class StandardMattermostService implements MattermostService {
 
 	public boolean publish(String message, String color) {
 		boolean result = true;
-		for (String roomId : roomIds) {
+		for (String userAndRoomId : roomIds) {
 			String url = endpoint;
+      String roomId = "";
+      String userId = "jenkins";
+      String[] splitUserAndRoomId = userAndRoomId.split("@");
+      switch (splitUserAndRoomId.length) {
+        case 1:
+          roomId = splitUserAndRoomId[0];
+          break;
+        case 2:
+          userId = splitUserAndRoomId[0];
+          roomId = splitUserAndRoomId[1];
+          break;
+      }
+        
 			String roomIdString = roomId;
+
 			if (StringUtils.isEmpty(roomIdString)) {
 				roomIdString = "(default)";
 			}
@@ -72,7 +86,7 @@ public class StandardMattermostService implements MattermostService {
 				json.put("attachments", attachments);
 
 				if (!roomId.isEmpty()) json.put("channel", roomId);
-				json.put("username", "jenkins");
+				json.put("username", userId);
 				json.put("icon_url", icon);
 
 				post.addParameter("payload", json.toString());
