@@ -41,18 +41,18 @@ public class StandardMattermostService implements MattermostService {
 		boolean result = true;
 		for (String userAndRoomId : roomIds) {
 			String url = endpoint;
-      String roomId = "";
-      String userId = "jenkins";
-      String[] splitUserAndRoomId = userAndRoomId.split("@");
-      switch (splitUserAndRoomId.length) {
-        case 1:
-          roomId = splitUserAndRoomId[0];
-          break;
-        case 2:
-          userId = splitUserAndRoomId[0];
-          roomId = splitUserAndRoomId[1];
-          break;
-      }
+			String roomId = "";
+			String userId = "jenkins";
+			String[] splitUserAndRoomId = userAndRoomId.split("@");
+			switch (splitUserAndRoomId.length) {
+			      case 1:
+				    roomId = splitUserAndRoomId[0];
+				    break;
+			      case 2:
+				    userId = splitUserAndRoomId[0];
+				    roomId = splitUserAndRoomId[1];
+				    break;
+			}
         
 			String roomIdString = roomId;
 
