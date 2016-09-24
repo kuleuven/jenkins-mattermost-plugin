@@ -67,7 +67,7 @@ public class MattermostNotifier extends Notifier {
 	}
 
 	public String getBuildServerUrl() {
-		if(buildServerUrl == null || buildServerUrl == "") {
+		if(buildServerUrl == null || buildServerUrl.equals("")) {
 			JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
 			return jenkinsConfig.getUrl();
 		}
@@ -234,7 +234,7 @@ public class MattermostNotifier extends Notifier {
 		}
 
 		public String getBuildServerUrl() {
-			if(buildServerUrl == null || buildServerUrl == "") {
+			if(buildServerUrl == null || buildServerUrl.equals("")) {
 				JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
 				return jenkinsConfig.getUrl();
 			}
@@ -253,6 +253,9 @@ public class MattermostNotifier extends Notifier {
 
 		@Override
 		public MattermostNotifier newInstance(StaplerRequest sr, JSONObject json) {
+			if (sr == null) {
+			    return null;
+			}
 			String endpoint = sr.getParameter("mattermostEndpoint");
 			String room = sr.getParameter("mattermostRoom");
 			String icon = sr.getParameter("mattermostIcon");
@@ -280,7 +283,7 @@ public class MattermostNotifier extends Notifier {
 			icon = sr.getParameter("mattermostIcon");
 			buildServerUrl = sr.getParameter("mattermostBuildServerUrl");
 			sendAs = sr.getParameter("mattermostSendAs");
-			if(buildServerUrl == null || buildServerUrl == "") {
+			if(buildServerUrl == null || buildServerUrl.equals("")) {
 				JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
 				buildServerUrl = jenkinsConfig.getUrl();
 			}

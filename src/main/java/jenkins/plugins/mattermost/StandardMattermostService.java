@@ -45,13 +45,13 @@ public class StandardMattermostService implements MattermostService {
 			String userId = "jenkins";
 			String[] splitUserAndRoomId = userAndRoomId.split("@");
 			switch (splitUserAndRoomId.length) {
-			      case 1:
-				    roomId = splitUserAndRoomId[0];
-				    break;
-			      case 2:
-				    userId = splitUserAndRoomId[0];
-				    roomId = splitUserAndRoomId[1];
-				    break;
+				case 1:
+					roomId = splitUserAndRoomId[0];
+					break;
+				default: // should be 2
+					userId = splitUserAndRoomId[0];
+					roomId = splitUserAndRoomId[1];
+					break;
 			}
         
 			String roomIdString = roomId;
