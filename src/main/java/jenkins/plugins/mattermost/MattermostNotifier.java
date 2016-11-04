@@ -45,6 +45,7 @@ public class MattermostNotifier extends Notifier {
     private boolean notifyBackToNormal;
     private boolean notifyRepeatedFailure;
     private boolean includeTestSummary;
+    transient private boolean showCommitList;
     private CommitInfoChoice commitInfoChoice;
     private boolean includeCustomMessage;
     private String customMessage;
@@ -128,30 +129,100 @@ public class MattermostNotifier extends Notifier {
 	return customMessage;
     }
 
+    @DataBoundSetter public void setRoom(@CheckForNull String room) {
+	this.room = Util.fixNull(room);
+    }
+
+    @DataBoundSetter public void setIcon(@CheckForNull String icon) {
+	this.icon = Util.fixNull(icon);
+    }
+
+    @DataBoundSetter public void setBuildServerUrl(@CheckForNull String buildServerUrl) {
+	this.buildServerUrl = Util.fixNull(buildServerUrl);
+    }
+
+    @DataBoundSetter public void setSendAs(@CheckForNull String sendAs) {
+	this.sendAs = Util.fixNull(sendAs);
+    }
+
+    @DataBoundSetter public void setStartNotification(boolean startNotification) {
+	this.startNotification = startNotification;
+    }
+
+    @DataBoundSetter public void setNotifySuccess(boolean notifySuccess) {
+	this.notifySuccess = notifySuccess;
+    }
+
+    @DataBoundSetter public void setCommitInfoChoice(@CheckForNull CommitInfoChoice commitInfoChoice) {
+	this.commitInfoChoice = Util.fixNull(commitInfoChoice);
+    }
+
+    @DataBoundSetter public void setNotifyAborted(boolean notifyAborted) {
+	this.notifyAborted = notifyAborted;
+    }
+
+    @DataBoundSetter public void setNotifyFailure(boolean notifyFailure) {
+	this.notifyFailure = notifyFailure;
+    }
+
+    @DataBoundSetter public void setNotifyNotBuilt(boolean notifyNotBuilt) {
+	this.notifyNotBuilt = notifyNotBuilt;
+    }
+
+    @DataBoundSetter public void setNotifyUnstable(boolean notifyUnstable) {
+	this.notifyUnstable = notifyUnstable;
+    }
+
+    @DataBoundSetter public void setNotifyBackToNormal(boolean notifyBackToNormal) {
+	this.notifyBackToNormal = notifyBackToNormal;
+    }
+
+    @DataBoundSetter public void setIncludeTestSummary(boolean includeTestSummary) {
+	this.includeTestSummary = includeTestSummary;
+    }
+
+    @DataBoundSetter public void setNotifyRepeatedFailure(boolean notifyRepeatedFailure) {
+	this.notifyRepeatedFailure = notifyRepeatedFailure;
+    }
+
+    @DataBoundSetter public void setIncludeCustomMessage(boolean includeCustomMessage) {
+	this.includeCustomMessage = includeCustomMessage;
+    }
+
+    @DataBoundSetter public void setCustomMessage(@CheckForNull String customMessage) {
+	this.customMessage = Util.fixNull(customMessage);
+    }
+
     @DataBoundConstructor
+    public MattermostNotifier(final String endpoint) {
+	super();
+	this.setEndpoint(endpoint);
+    }
+
+    @Deprecated
     public MattermostNotifier(final String endpoint, final String room, final String icon, final String buildServerUrl,
 	    final String sendAs, final boolean startNotification, final boolean notifyAborted, final boolean notifyFailure,
 	    final boolean notifyNotBuilt, final boolean notifySuccess, final boolean notifyUnstable, final boolean notifyBackToNormal,
 	    final boolean notifyRepeatedFailure, final boolean includeTestSummary, final CommitInfoChoice commitInfoChoice,
 	    boolean includeCustomMessage, String customMessage) {
 	super();
-	this.endpoint = endpoint;
-	this.buildServerUrl = buildServerUrl;
-	this.room = room;
-	this.icon = icon;
-	this.sendAs = sendAs;
-	this.startNotification = startNotification;
-	this.notifyAborted = notifyAborted;
-	this.notifyFailure = notifyFailure;
-	this.notifyNotBuilt = notifyNotBuilt;
-	this.notifySuccess = notifySuccess;
-	this.notifyUnstable = notifyUnstable;
-	this.notifyBackToNormal = notifyBackToNormal;
-	this.notifyRepeatedFailure = notifyRepeatedFailure;
-	this.includeTestSummary = includeTestSummary;
-	this.commitInfoChoice = commitInfoChoice;
-	this.includeCustomMessage = includeCustomMessage;
-	this.customMessage = customMessage;
+	this.setEndpoint(endpoint);
+	this.setBuildServerUrl(buildServerUrl);
+	this.setRoom(room);
+	this.setIcon(icon);
+	this.setSendAs(sendAs);
+	this.setStartNotification(startNotification);
+	this.setNotifyAborted(notifyAborted);
+	this.setNotifyFailure(notifyFailure);
+	this.setNotifyNotBuilt(notifyNotBuilt);
+	this.setNotifySuccess(notifySuccess);
+	this.setNotifyUnstable(notifyUnstable);
+	this.setNotifyBackToNormal(notifyBackToNormal);
+	this.setNotifyRepeatedFailure(notifyRepeatedFailure);
+	this.setIncludeTestSummary(includeTestSummary);
+	this.setCommitInfoChoice(commitInfoChoice);
+	this.setIncludeCustomMessage(includeCustomMessage);
+	this.setCustomMessage(customMessage);
     }
 
     public BuildStepMonitor getRequiredMonitorService() {
