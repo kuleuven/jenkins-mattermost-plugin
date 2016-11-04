@@ -18,6 +18,7 @@ import jenkins.model.JenkinsLocationConfiguration;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
@@ -26,6 +27,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static hudson.Util.fixNull;
+
+import javax.annotation.CheckForNull;
 
 public class MattermostNotifier extends Notifier {
 
@@ -129,20 +133,24 @@ public class MattermostNotifier extends Notifier {
 	return customMessage;
     }
 
+    public void setEndpoint(@CheckForNull String endpoint) {
+	this.endpoint = fixNull(endpoint);
+    }
+
     @DataBoundSetter public void setRoom(@CheckForNull String room) {
-	this.room = Util.fixNull(room);
+	this.room = fixNull(room);
     }
 
     @DataBoundSetter public void setIcon(@CheckForNull String icon) {
-	this.icon = Util.fixNull(icon);
+	this.icon = fixNull(icon);
     }
 
     @DataBoundSetter public void setBuildServerUrl(@CheckForNull String buildServerUrl) {
-	this.buildServerUrl = Util.fixNull(buildServerUrl);
+	this.buildServerUrl = fixNull(buildServerUrl);
     }
 
     @DataBoundSetter public void setSendAs(@CheckForNull String sendAs) {
-	this.sendAs = Util.fixNull(sendAs);
+	this.sendAs = fixNull(sendAs);
     }
 
     @DataBoundSetter public void setStartNotification(boolean startNotification) {
@@ -153,8 +161,8 @@ public class MattermostNotifier extends Notifier {
 	this.notifySuccess = notifySuccess;
     }
 
-    @DataBoundSetter public void setCommitInfoChoice(@CheckForNull CommitInfoChoice commitInfoChoice) {
-	this.commitInfoChoice = Util.fixNull(commitInfoChoice);
+    @DataBoundSetter public void setCommitInfoChoice(CommitInfoChoice commitInfoChoice) {
+	this.commitInfoChoice = commitInfoChoice;
     }
 
     @DataBoundSetter public void setNotifyAborted(boolean notifyAborted) {
@@ -190,7 +198,7 @@ public class MattermostNotifier extends Notifier {
     }
 
     @DataBoundSetter public void setCustomMessage(@CheckForNull String customMessage) {
-	this.customMessage = Util.fixNull(customMessage);
+	this.customMessage = fixNull(customMessage);
     }
 
     @DataBoundConstructor
