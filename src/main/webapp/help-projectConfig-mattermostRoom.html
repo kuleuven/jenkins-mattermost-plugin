@@ -1,8 +1,10 @@
 <div>
   <p>
-    Enter the channel names to which notifications should be sent. Note that this can include names of
-    channels OR channel id numbers, e.g. "#builds", and that multiple values may appear comma separated.
-    While names are more readable, channel ids will not change over time and are therefore more resilient. 
+    Enter the channel names to which to send notifications. Multiple values may appear comma separated. A custom username
+    can be specified using 'username@channelname'. Channels should be entered as they appear in the url; rule of thumb is
+    lower case with dashes instead of spaces.
+
+    Examples: jenkins-test-server@builds, #build-channel, town-square, #off-topic
   </p>
   <p>
 	This overrides the global setting.
