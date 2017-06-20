@@ -29,7 +29,7 @@ public class StandardMattermostService implements MattermostService {
 	public StandardMattermostService(String endpoint, String roomId, String icon) {
 		super();
 		this.endpoint = endpoint;
-		this.roomIds = roomId.split("[,; ]+");
+		this.roomIds = roomId.split("[,;]+");
 		this.icon = icon;
 	}
 
@@ -41,7 +41,7 @@ public class StandardMattermostService implements MattermostService {
 		boolean result = true;
 		for (String userAndRoomId : roomIds) {
 			String url = endpoint;
-			String roomId = userAndRoomId;
+			String roomId = userAndRoomId.trim();
 			String userId = "jenkins";
 			// Supported channel string formats:
 			// - user@channel
@@ -50,8 +50,8 @@ public class StandardMattermostService implements MattermostService {
 			// - @dmchannel
 			int atPos = userAndRoomId.indexOf("@");
 			if (atPos > 0 && atPos < userAndRoomId.length() - 1) {
-			    userId = userAndRoomId.substring(0, atPos);
-			    roomId = userAndRoomId.substring(atPos + 1);
+			    userId = userAndRoomId.substring(0, atPos).trim();
+			    roomId = userAndRoomId.substring(atPos + 1).trim();
 			}
         
 			String roomIdString = roomId;
