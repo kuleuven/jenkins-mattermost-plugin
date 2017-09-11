@@ -74,7 +74,7 @@ public class MattermostSendStepTest {
 
         stepExecution.run();
         verify(stepExecution, times(1)).getMattermostService("endpoint", "channel", "icon");
-        verify(mattermostServiceMock, times(1)).publish("message", "good");
+        verify(mattermostServiceMock, times(1)).publish("message", "", "good");
         assertFalse(stepExecution.step.isFailOnError());
     }
 
@@ -98,12 +98,13 @@ public class MattermostSendStepTest {
         when(stepExecution.getMattermostService(anyString(), anyString(), anyString())).thenReturn(mattermostServiceMock);
 
         stepExecution.run();
-        verify(stepExecution, times(1)).getMattermostService("globalEndpoint","globalChannel", "globalIcon");
-        verify(mattermostServiceMock, times(1)).publish("message", "");
+        verify(stepExecution, times(1)).getMattermostService("globalEndpoint", "globalChannel", "globalIcon");
+        verify(mattermostServiceMock, times(1)).publish("message", "", "");
         assertNull(stepExecution.step.getEndpoint());
         assertNull(stepExecution.step.getIcon());
         assertNull(stepExecution.step.getChannel());
         assertNull(stepExecution.step.getColor());
+        assertNull(stepExecution.step.getText());
     }
 
     @Test
@@ -124,8 +125,29 @@ public class MattermostSendStepTest {
         when(stepExecution.getMattermostService(anyString(), anyString(), anyString())).thenReturn(mattermostServiceMock);
 
         stepExecution.run();
-        verify(mattermostServiceMock, times(1)).publish("message", "");
+        verify(mattermostServiceMock, times(1)).publish("message", "", "");
         assertNull(stepExecution.step.getColor());
+    }
+    
+    @Test
+    public void testNonNullPretext() throws Exception {
+
+        MattermostSendStep.SlackSendStepExecution stepExecution = spy(new MattermostSendStep.SlackSendStepExecution());
+        MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
+        mattermostSendStep.setText("@foo @bar");
+        stepExecution.step = mattermostSendStep;
+
+        when(Jenkins.getInstance()).thenReturn(jenkins);
+
+        stepExecution.listener = taskListenerMock;
+
+        when(taskListenerMock.getLogger()).thenReturn(printStreamMock);
+        doNothing().when(printStreamMock).println();
+
+        when(stepExecution.getMattermostService(anyString(), anyString(), anyString())).thenReturn(mattermostServiceMock);
+
+        stepExecution.run();
+        verify(mattermostServiceMock, times(1)).publish("message", "@foo @bar", "");
     }
 
     @Test
