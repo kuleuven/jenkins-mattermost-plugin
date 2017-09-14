@@ -13,7 +13,7 @@ Which was, in turn, a fork of the Campfire plugin.
 Includes [Jenkins Pipeline](https://github.com/jenkinsci/workflow-plugin) support as of version 2.0:
 
 ```
-mattermostSend color: 'good', message: 'Message from Jenkins Pipeline'
+mattermostSend color: 'good', message: 'Message from Jenkins Pipeline', text: 'optional for @here mentions and searchable text'
 ```
 
 # Jenkins Instructions
