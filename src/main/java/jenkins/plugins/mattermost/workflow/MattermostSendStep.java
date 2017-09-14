@@ -22,6 +22,7 @@ import javax.inject.Inject;
 public class MattermostSendStep extends AbstractStepImpl {
 
     private final @Nonnull String message;
+    private String text;
     private String color;
     private String channel;
     private String endpoint;
@@ -34,8 +35,17 @@ public class MattermostSendStep extends AbstractStepImpl {
         return message;
     }
 
+    public String getText() {
+        return text;
+    }
+
     public String getColor() {
         return color;
+    }
+
+    @DataBoundSetter
+    public void setText(String text) {
+        this.text = Util.fixEmpty(text);
     }
 
     @DataBoundSetter
@@ -128,14 +138,15 @@ public class MattermostSendStep extends AbstractStepImpl {
             MattermostNotifier.DescriptorImpl slackDesc = jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
             String team = step.endpoint != null ? step.endpoint : slackDesc.getEndpoint();
             String channel = step.channel != null ? step.channel : slackDesc.getRoom();
-            String icon = step.icon != null ? step.icon: slackDesc.getIcon();
+            String icon = step.icon != null ? step.icon : slackDesc.getIcon();
             String color = step.color != null ? step.color : "";
+            String text = step.text != null ? step.text : "";
 
             //placing in console log to simplify testing of retrieving values from global config or from step field; also used for tests
             listener.getLogger().printf("Mattermost Send Pipeline step configured values from global config - connector: %s, icon: %s, channel: %s, color: %s", step.endpoint == null, step.icon == null, step.channel == null, step.color == null);
 
             MattermostService slackService = getMattermostService(team, channel, icon);
-            boolean publishSuccess = slackService.publish(step.message, color);
+            boolean publishSuccess = slackService.publish(step.message, text, color);
             if (!publishSuccess && step.failOnError) {
                 throw new AbortException("Mattermost notification failed. See Jenkins logs for details.");
             } else if (!publishSuccess) {

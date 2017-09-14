@@ -38,6 +38,10 @@ public class StandardMattermostService implements MattermostService {
 	}
 
 	public boolean publish(String message, String color) {
+		return publish(message, "", color);
+	}
+
+	public boolean publish(String message, String text, String color) {
 		boolean result = true;
 		for (String userAndRoomId : roomIds) {
 			String url = endpoint;
@@ -50,10 +54,10 @@ public class StandardMattermostService implements MattermostService {
 			// - @dmchannel
 			int atPos = userAndRoomId.indexOf("@");
 			if (atPos > 0 && atPos < userAndRoomId.length() - 1) {
-			    userId = userAndRoomId.substring(0, atPos).trim();
-			    roomId = userAndRoomId.substring(atPos + 1).trim();
+					userId = userAndRoomId.substring(0, atPos).trim();
+					roomId = userAndRoomId.substring(atPos + 1).trim();
 			}
-        
+
 			String roomIdString = roomId;
 
 			if (StringUtils.isEmpty(roomIdString)) {
@@ -83,6 +87,7 @@ public class StandardMattermostService implements MattermostService {
 				attachment.put("mrkdwn_in", mrkdwn);
 				JSONArray attachments = new JSONArray();
 				attachments.put(attachment);
+				json.put("text", text);
 				json.put("attachments", attachments);
 
 				if (!roomId.isEmpty()) json.put("channel", roomId);

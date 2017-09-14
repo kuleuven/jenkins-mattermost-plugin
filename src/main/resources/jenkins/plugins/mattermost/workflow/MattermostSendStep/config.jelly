@@ -4,6 +4,9 @@
     <f:entry field="message" title="Message">
         <f:textbox/>
     </f:entry>
+    <f:entry field="text" title="Text">
+        <f:textbox/>
+    </f:entry>
     <f:entry field="color" title="Color">
         <f:textbox/>
     </f:entry>
