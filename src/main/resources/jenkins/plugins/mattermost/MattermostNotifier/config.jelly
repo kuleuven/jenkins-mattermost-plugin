@@ -39,9 +39,15 @@
             <f:checkbox name="includeTestSummary" value="true" checked="${instance.includeTestSummary()}"/>
         </f:entry>
 
-        <f:optionalBlock name="includeCustomMessage" title="Include Custom Message" checked="${instance.includeCustomMessage()}">
-            <f:entry title="Custom Message" help="/plugin/mattermost/help-projectConfig-mattermostCustomMessage.html">
-                <f:textarea name="customMessage" value="${instance.getCustomMessage()}"/>
+        <f:optionalBlock name="includeCustomAttachmentMessage" title="Include custom attachment message" checked="${instance.includeCustomAttachmentMessage()}">
+            <f:entry title="Custom Attachment Message" help="/plugin/mattermost/help-projectConfig-mattermostCustomAttachmentMessage.html">
+                <f:textarea name="mattermostCustomAttachmentMessage" value="${instance.getCustomAttachmentMessage()}"/>
+            </f:entry>
+        </f:optionalBlock>
+
+        <f:optionalBlock name="includeCustomMessage" title="Include custom message" checked="${instance.includeCustomMessage()}">
+            <f:entry title="Text" help="/plugin/mattermost/help-projectConfig-mattermostCustomMessage.html">
+                <f:textarea name="mattermostCustomMessage" value="${instance.getCustomMessage()}"/>
             </f:entry>
         </f:optionalBlock>
 

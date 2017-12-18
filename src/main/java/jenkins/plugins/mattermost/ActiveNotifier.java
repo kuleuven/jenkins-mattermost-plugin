@@ -1,5 +1,12 @@
 package jenkins.plugins.mattermost;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+
 import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.AbstractBuild;
@@ -18,15 +25,9 @@ import hudson.triggers.SCMTrigger;
 import hudson.util.LogTaskListener;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
+
 
 @SuppressWarnings("rawtypes")
 public class ActiveNotifier implements FineGrainedNotifier {
@@ -66,21 +67,21 @@ public class ActiveNotifier implements FineGrainedNotifier {
 			}
 		}
 
-		String changes = getChanges(build, notifier.includeCustomMessage());
+		String changes = getChanges(build, notifier.includeCustomAttachmentMessage());
 		if (changes != null) {
 			notifyStart(build, changes);
 		} else {
-			notifyStart(build, getBuildStatusMessage(build, false, notifier.includeCustomMessage()));
+			notifyStart(build, getBuildStatusMessage(build, false, notifier.includeCustomAttachmentMessage()));
 		}
 	}
 
-	private void notifyStart(AbstractBuild build, String message) {
+	private void notifyStart(AbstractBuild build, String attachmentMessage) {
 		AbstractProject<?, ?> project = (build != null) ? build.getProject() : null;
 		AbstractBuild<?, ?> previousBuild = (project != null && project.getLastBuild() != null) ? project.getLastBuild().getPreviousCompletedBuild() : null;
 		if (previousBuild == null) {
-			getMattermost(build).publish(message, "good");
+			getMattermost(build).publish(attachmentMessage, notifier.getCustomMessage(), "good");
 		} else {
-			getMattermost(build).publish(message, getBuildColor(previousBuild));
+			getMattermost(build).publish(attachmentMessage, notifier.getCustomMessage(), getBuildColor(previousBuild));
 		}
 	}
 
@@ -99,26 +100,26 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		Result previousResult = (previousBuild != null) ? previousBuild.getResult() : Result.SUCCESS;
 		if ((result == Result.ABORTED && notifier.getNotifyAborted())
 				|| (result == Result.FAILURE //notify only on single failed build
-					&& previousResult != Result.FAILURE
-					&& notifier.getNotifyFailure())
+				&& previousResult != Result.FAILURE
+				&& notifier.getNotifyFailure())
 				|| (result == Result.FAILURE //notify only on repeated failures
-					&& previousResult == Result.FAILURE
-					&& notifier.getNotifyRepeatedFailure())
+				&& previousResult == Result.FAILURE
+				&& notifier.getNotifyRepeatedFailure())
 				|| (result == Result.NOT_BUILT && notifier.getNotifyNotBuilt())
 				|| (result == Result.SUCCESS
-					&& (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
-					&& notifier.getNotifyBackToNormal())
+				&& (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
+				&& notifier.getNotifyBackToNormal())
 				|| (result == Result.SUCCESS && notifier.getNotifySuccess())
 				|| (result == Result.UNSTABLE && notifier.getNotifyUnstable())) {
 			getMattermost(r).publish(getBuildStatusMessage(r, notifier.includeTestSummary(),
-						notifier.includeCustomMessage()), getBuildColor(r));
+					notifier.includeCustomAttachmentMessage()), notifier.getCustomMessage(), getBuildColor(r));
 			if (notifier.getCommitInfoChoice().showAnything()) {
-				getMattermost(r).publish(getCommitList(r), getBuildColor(r));
+				getMattermost(r).publish(getCommitList(r), notifier.getCustomMessage(), getBuildColor(r));
 			}
-				}
+		}
 	}
 
-	String getChanges(AbstractBuild r, boolean includeCustomMessage) {
+	String getChanges(AbstractBuild r, boolean includeCustomAttachmentMessage) {
 		if (!r.hasChangeSetComputed()) {
 			logger.info("No change set computed...");
 			return null;
@@ -127,7 +128,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		List<Entry> entries = new LinkedList<Entry>();
 		Set<AffectedFile> files = new HashSet<AffectedFile>();
 		for (Object o : changeSet.getItems()) {
-			Entry entry = (Entry) o;
+			Entry entry = (Entry)o;
 			logger.info("Entry " + o);
 			entries.add(entry);
 			files.addAll(entry.getAffectedFiles());
@@ -147,8 +148,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		message.append(files.size());
 		message.append(" file(s) changed)");
 		message.appendOpenLink();
-		if (includeCustomMessage) {
-			message.appendCustomMessage();
+		if (includeCustomAttachmentMessage) {
+			message.appendCustomAttachmentMessage();
 		}
 		return message.toString();
 	}
@@ -157,7 +158,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		ChangeLogSet changeSet = r.getChangeSet();
 		List<Entry> entries = new LinkedList<Entry>();
 		for (Object o : changeSet.getItems()) {
-			Entry entry = (Entry) o;
+			Entry entry = (Entry)o;
 			logger.info("Entry " + o);
 			entries.add(entry);
 		}
@@ -205,7 +206,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		}
 	}
 
-	String getBuildStatusMessage(AbstractBuild r, boolean includeTestSummary, boolean includeCustomMessage) {
+	String getBuildStatusMessage(AbstractBuild r, boolean includeTestSummary, boolean includeCustomAttachmentMessage) {
 		MessageBuilder message = new MessageBuilder(notifier, r);
 		message.appendStatusMessage();
 		message.appendDuration();
@@ -213,8 +214,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		if (includeTestSummary) {
 			message.appendTestSummary();
 		}
-		if (includeCustomMessage) {
-			message.appendCustomMessage();
+		if (includeCustomAttachmentMessage) {
+			message.appendCustomAttachmentMessage();
 		}
 		return message.toString();
 	}
@@ -265,7 +266,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 			 * should be failure -> success (and therefore back to normal) not aborted -> success.
 			 */
 			Run lastNonAbortedBuild = previousBuild;
-			while(lastNonAbortedBuild != null && lastNonAbortedBuild.getResult() == Result.ABORTED) {
+			while (lastNonAbortedBuild != null && lastNonAbortedBuild.getResult() == Result.ABORTED) {
 				lastNonAbortedBuild = lastNonAbortedBuild.getPreviousBuild();
 			}
 
@@ -273,7 +274,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 			/* If all previous builds have been aborted, then use
 			 * SUCCESS as a default status so an aborted message is sent
 			 */
-			if(lastNonAbortedBuild == null) {
+			if (lastNonAbortedBuild == null) {
 				previousResult = Result.SUCCESS;
 			} else {
 				previousResult = lastNonAbortedBuild.getResult();
@@ -287,7 +288,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 					&& (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
 					&& buildHasSucceededBefore) {
 				return BACK_TO_NORMAL_STATUS_MESSAGE;
-					}
+			}
 			if (result == Result.FAILURE && previousResult == Result.FAILURE) {
 				return STILL_FAILING_STATUS_MESSAGE;
 			}
@@ -336,7 +337,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 		public MessageBuilder appendDuration() {
 			message.append(" after ");
 			String durationString;
-			if(message.toString().contains(BACK_TO_NORMAL_STATUS_MESSAGE)){
+			if (message.toString().contains(BACK_TO_NORMAL_STATUS_MESSAGE)) {
 				durationString = createBackToNormalDurationString();
 			} else {
 				durationString = build.getDurationString();
@@ -347,7 +348,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
 		public MessageBuilder appendTestSummary() {
 			AbstractTestResultAction<?> action = this.build
-				.getAction(AbstractTestResultAction.class);
+					.getAction(AbstractTestResultAction.class);
 			if (action != null) {
 				int total = action.getTotalCount();
 				int failed = action.getFailCount();
@@ -362,8 +363,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
 			return this;
 		}
 
-		public MessageBuilder appendCustomMessage() {
-			String customMessage = notifier.getCustomMessage();
+		public MessageBuilder appendCustomAttachmentMessage() {
+			String customAttachmentMessage = notifier.getCustomAttachmentMessage();
 			EnvVars envVars = new EnvVars();
 			try {
 				envVars = build.getEnvironment(new LogTaskListener(logger, INFO));
@@ -373,11 +374,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
 				logger.log(SEVERE, e.getMessage(), e);
 			}
 			message.append("\n");
-			message.append(envVars.expand(customMessage));
+			message.append(envVars.expand(customAttachmentMessage));
 			return this;
 		}
 
-		private String createBackToNormalDurationString(){
+		private String createBackToNormalDurationString() {
 			Run previousSuccessfulBuild = build.getPreviousSuccessfulBuild();
 			if (previousSuccessfulBuild == null) {
 				return "unknown";
