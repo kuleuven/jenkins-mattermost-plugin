@@ -78,10 +78,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
 	private void notifyStart(AbstractBuild build, String attachmentMessage) {
 		AbstractProject<?, ?> project = (build != null) ? build.getProject() : null;
 		AbstractBuild<?, ?> previousBuild = (project != null && project.getLastBuild() != null) ? project.getLastBuild().getPreviousCompletedBuild() : null;
+		String expandedCustomMessage = getExpandedCustomMessage(build);
 		if (previousBuild == null) {
-			getMattermost(build).publish(attachmentMessage, notifier.getCustomMessage(), "good");
+			getMattermost(build).publish(attachmentMessage, expandedCustomMessage, "good");
 		} else {
-			getMattermost(build).publish(attachmentMessage, notifier.getCustomMessage(), getBuildColor(previousBuild));
+			getMattermost(build).publish(attachmentMessage, expandedCustomMessage, getBuildColor(previousBuild));
 		}
 	}
 
@@ -111,10 +112,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
 				&& notifier.getNotifyBackToNormal())
 				|| (result == Result.SUCCESS && notifier.getNotifySuccess())
 				|| (result == Result.UNSTABLE && notifier.getNotifyUnstable())) {
+			String expandedCustomMessage = getExpandedCustomMessage(r);
 			getMattermost(r).publish(getBuildStatusMessage(r, notifier.includeTestSummary(),
-					notifier.includeCustomAttachmentMessage()), notifier.getCustomMessage(), getBuildColor(r));
+					notifier.includeCustomAttachmentMessage()), expandedCustomMessage, getBuildColor(r));
 			if (notifier.getCommitInfoChoice().showAnything()) {
-				getMattermost(r).publish(getCommitList(r), notifier.getCustomMessage(), getBuildColor(r));
+				getMattermost(r).publish(getCommitList(r), expandedCustomMessage, getBuildColor(r));
 			}
 		}
 	}
@@ -218,6 +220,21 @@ public class ActiveNotifier implements FineGrainedNotifier {
 			message.appendCustomAttachmentMessage();
 		}
 		return message.toString();
+	}
+
+	String getExpandedCustomMessage(AbstractBuild build) {
+		String result = "";
+		if(notifier.includeCustomMessage()) {
+			String customMessage = notifier.getCustomMessage();
+			EnvVars envVars = new EnvVars();
+			try {
+				envVars = build.getEnvironment(new LogTaskListener(logger, INFO));
+			} catch (IOException | InterruptedException e) {
+				logger.log(SEVERE, e.getMessage(), e);
+			}
+			result = envVars.expand(customMessage);
+		}
+		return result;
 	}
 
 	public static class MessageBuilder {
