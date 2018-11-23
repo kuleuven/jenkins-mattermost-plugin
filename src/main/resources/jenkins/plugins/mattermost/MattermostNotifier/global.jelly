@@ -15,16 +15,16 @@
   -->
 <f:section title="Global Mattermost Notifier Settings" name="mattermost">
     <f:entry title="Endpoint" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostEndpoint.html">
-        <f:textbox field="endpoint" name="mattermostEndpoint" value="${descriptor.getEndpoint()}" />
+        <f:textbox field="endpoint" value="${descriptor.getEndpoint()}" />
     </f:entry>
     <f:entry title="Channel" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostRoom.html">
-        <f:textbox field="room" name="mattermostRoom" value="${descriptor.getRoom()}" />
+        <f:textbox field="room" value="${descriptor.getRoom()}" />
     </f:entry>
     <f:entry title="Icon to use" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostIcon.html">
-        <f:textbox field="icon" name="mattermostIcon" value="${descriptor.getIcon()}" />
+        <f:textbox field="icon" value="${descriptor.getIcon()}" />
     </f:entry>
     <f:entry title="Build Server URL" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostBuildServerUrl.html">
-        <f:textbox field="buildServerUrl" name="mattermostBuildServerUrl" value="${descriptor.getBuildServerUrl()}" />
+        <f:textbox field="buildServerUrl" value="${descriptor.getBuildServerUrl()}" />
     </f:entry>
     <f:validateButton
         title="${%Test Connection}" progress="${%Testing...}"

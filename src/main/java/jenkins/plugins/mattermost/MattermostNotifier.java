@@ -338,18 +338,38 @@ public class MattermostNotifier extends Notifier {
 			load();
 		}
 
+		@DataBoundSetter
+		public void setEndpoint(String endpoint) {
+			this.endpoint = endpoint;
+		}
+		
 		public String getEndpoint() {
 			return endpoint;
 		}
 
+		@DataBoundSetter
+		public void setRoom(String room) {
+			this.room = room;
+		}
+		
 		public String getRoom() {
 			return room;
 		}
 
+		@DataBoundSetter
+		public void setIcon(String icon) {
+			this.icon = icon;
+		}
+		
 		public String getIcon() {
 			return icon;
 		}
 
+		@DataBoundSetter
+		public void setBuildServerUrl(String buildServerUrl) {
+			this.buildServerUrl = buildServerUrl;
+		}
+		
 		public String getBuildServerUrl() {
 			if (buildServerUrl == null || buildServerUrl.equals("")) {
 				JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
@@ -395,21 +415,10 @@ public class MattermostNotifier extends Notifier {
 		}
 
 		@Override
-		public boolean configure(StaplerRequest sr, JSONObject formData) throws FormException {
-			endpoint = sr.getParameter("mattermostEndpoint");
-			room = sr.getParameter("mattermostRoom");
-			icon = sr.getParameter("mattermostIcon");
-			buildServerUrl = sr.getParameter("mattermostBuildServerUrl");
-			sendAs = sr.getParameter("mattermostSendAs");
-			if (buildServerUrl == null || buildServerUrl.equals("")) {
-				JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
-				buildServerUrl = jenkinsConfig.getUrl();
-			}
-			if (buildServerUrl != null && !buildServerUrl.endsWith("/")) {
-				buildServerUrl = buildServerUrl + "/";
-			}
+		public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+			req.bindJSON(this, json);
 			save();
-			return super.configure(sr, formData);
+			return true;
 		}
 
 		MattermostService getMattermostService(final String endpoint, final String room, final String icon) {
