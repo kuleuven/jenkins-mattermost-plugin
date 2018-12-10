@@ -67,11 +67,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
 			}
 		}
 
-		String changes = getChanges(build, notifier.includeCustomAttachmentMessage());
+		String changes = getChanges(build, notifier.getIncludeCustomAttachmentMessage());
 		if (changes != null) {
 			notifyStart(build, changes);
 		} else {
-			notifyStart(build, getBuildStatusMessage(build, false, notifier.includeCustomAttachmentMessage()));
+			notifyStart(build, getBuildStatusMessage(build, false, notifier.getIncludeCustomAttachmentMessage()));
 		}
 	}
 
@@ -113,8 +113,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
 				|| (result == Result.SUCCESS && notifier.getNotifySuccess())
 				|| (result == Result.UNSTABLE && notifier.getNotifyUnstable())) {
 			String expandedCustomMessage = getExpandedCustomMessage(r);
-			getMattermost(r).publish(getBuildStatusMessage(r, notifier.includeTestSummary(),
-					notifier.includeCustomAttachmentMessage()), expandedCustomMessage, getBuildColor(r));
+			getMattermost(r).publish(getBuildStatusMessage(r, notifier.getIncludeTestSummary(),
+					notifier.getIncludeCustomAttachmentMessage()), expandedCustomMessage, getBuildColor(r));
 			if (notifier.getCommitInfoChoice().showAnything()) {
 				getMattermost(r).publish(getCommitList(r), expandedCustomMessage, getBuildColor(r));
 			}
@@ -224,7 +224,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
 	String getExpandedCustomMessage(AbstractBuild build) {
 		String result = "";
-		if(notifier.includeCustomMessage()) {
+		if(notifier.getIncludeCustomMessage()) {
 			String customMessage = notifier.getCustomMessage();
 			EnvVars envVars = new EnvVars();
 			try {

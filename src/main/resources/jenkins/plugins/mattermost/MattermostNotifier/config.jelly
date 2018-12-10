@@ -3,76 +3,71 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <f:entry title="Notify Build Start">
-        <f:checkbox name="mattermostStartNotification" value="true" checked="${instance.getStartNotification()}"/>
+        <f:checkbox field="startNotification" />
     </f:entry>
 
     <f:entry title="Notify Aborted">
-        <f:checkbox name="mattermostNotifyAborted" value="true" checked="${instance.getNotifyAborted()}"/>
+        <f:checkbox field="notifyAborted" />
     </f:entry>
 
     <f:entry title="Notify Failure">
-        <f:checkbox name="mattermostNotifyFailure" value="true" checked="${instance.getNotifyFailure()}"/>
+        <f:checkbox field="notifyFailure" />
     </f:entry>
 
     <f:entry title="Notify Not Built">
-        <f:checkbox name="mattermostNotifyNotBuilt" value="true" checked="${instance.getNotifyNotBuilt()}"/>
+        <f:checkbox field="notifyNotBuilt" />
     </f:entry>
 
     <f:entry title="Notify Success">
-        <f:checkbox name="mattermostNotifySuccess" value="true" checked="${instance.getNotifySuccess()}"/>
+        <f:checkbox field="notifySuccess" />
     </f:entry>
 
     <f:entry title="Notify Unstable">
-        <f:checkbox name="mattermostNotifyUnstable" value="true" checked="${instance.getNotifyUnstable()}"/>
+        <f:checkbox field="notifyUnstable" />
     </f:entry>
 
     <f:entry title="Notify Back To Normal">
-        <f:checkbox name="mattermostNotifyBackToNormal" value="true" checked="${instance.getNotifyBackToNormal()}"/>
+        <f:checkbox field="notifyBackToNormal" />
     </f:entry>
 
     <f:advanced>
         <f:entry title="Notify Repeated Failure">
-            <f:checkbox name="mattermostNotifyRepeatedFailure" value="true"
-                        checked="${instance.getNotifyRepeatedFailure()}"/>
+            <f:checkbox field="notifyRepeatedFailure" />
         </f:entry>
         <f:entry title="Include Test Summary">
-            <f:checkbox name="includeTestSummary" value="true" checked="${instance.includeTestSummary()}"/>
+            <f:checkbox field="includeTestSummary" />
         </f:entry>
 
-        <f:optionalBlock name="includeCustomAttachmentMessage" title="Include custom attachment message" checked="${instance.includeCustomAttachmentMessage()}">
-            <f:entry title="Custom Attachment Message" help="/plugin/mattermost/help-projectConfig-mattermostCustomAttachmentMessage.html">
-                <f:textarea name="mattermostCustomAttachmentMessage" value="${instance.getCustomAttachmentMessage()}"/>
+        <f:optionalBlock name="includeCustomAttachmentMessage" title="Include custom attachment message" inline="true" checked="${instance.customAttachmentMessage != null}">
+            <f:entry title="Custom Attachment Message" field="customAttachmentMessage" help="/plugin/mattermost/help-projectConfig-mattermostCustomAttachmentMessage.html">
+                <f:textarea />
             </f:entry>
         </f:optionalBlock>
 
-        <f:optionalBlock name="includeCustomMessage" title="Include custom message" checked="${instance.includeCustomMessage()}">
-            <f:entry title="Text" help="/plugin/mattermost/help-projectConfig-mattermostCustomMessage.html">
-                <f:textarea name="mattermostCustomMessage" value="${instance.getCustomMessage()}"/>
+        <f:optionalBlock name="includeCustomMessage" title="Include custom message" inline="true" checked="${instance.customMessage != null}">
+            <f:entry title="Custom Message" field="customMessage" help="/plugin/mattermost/help-projectConfig-mattermostCustomMessage.html">
+                <f:textarea />
             </f:entry>
         </f:optionalBlock>
 
-        <f:entry title="Notification message includes" description="What commit information to include into notification message">
-            <select class="setting-input" name="slackCommitInfoChoice">
-                <j:forEach var="i" items="${descriptor.COMMIT_INFO_CHOICES}">
-                    <f:option selected="${instance.getCommitInfoChoice()==i}">${i.getDisplayName()}</f:option>
-                </j:forEach>
-            </select>
+        <f:entry field="commitInfoChoice" title="Notification message includes"  description="What commit information to include into notification message">
+            <select />
         </f:entry>
 
         <f:entry title="Endpoint" help="/plugin/mattermost/help-projectConfig-mattermostEndpoint.html">
-            <f:textbox name="mattermostEndpoint" value="${instance.getEndpoint()}"/>
+            <f:textbox field="endpoint" />
         </f:entry>
 
         <f:entry title="Project Channel" help="/plugin/mattermost/help-projectConfig-mattermostRoom.html">
-            <f:textbox name="mattermostRoom" value="${instance.getRoom()}"/>
+            <f:textbox field="room" />
         </f:entry>
 
         <f:entry title="Icon to use" help="/plugin/mattermost/help-projectConfig-mattermostIcon.html">
-            <f:textbox name="mattermostIcon" value="${instance.getIcon()}"/>
+            <f:textbox field="icon" />
         </f:entry>
 
         <f:validateButton
                 title="${%Test Connection}" progress="${%Testing...}"
-                method="testConnection" with="mattermostEndpoint,mattermostRoom,mattermostIcon"/>
+                method="testConnection" with="endpoint,room,icon"/>
     </f:advanced>
 </j:jelly>

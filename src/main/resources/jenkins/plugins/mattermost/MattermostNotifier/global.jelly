@@ -13,21 +13,21 @@
     tags they use. Views are always organized according to its owner class,
     so it should be straightforward to find them.
   -->
-<f:section title="Global Mattermost Notifier Settings" name="mattermost">
-    <f:entry title="Endpoint" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostEndpoint.html">
-        <f:textbox field="endpoint" value="${descriptor.getEndpoint()}" />
+<f:section title="Global Mattermost Notifier Settings">
+    <f:entry title="Endpoint" help="/plugin/mattermost/help-globalConfig-mattermostEndpoint.html">
+        <f:textbox field="endpoint" />
     </f:entry>
-    <f:entry title="Channel" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostRoom.html">
-        <f:textbox field="room" value="${descriptor.getRoom()}" />
+    <f:entry title="Channel" help="/plugin/mattermost/help-globalConfig-mattermostRoom.html">
+        <f:textbox field="room" />
     </f:entry>
-    <f:entry title="Icon to use" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostIcon.html">
-        <f:textbox field="icon" value="${descriptor.getIcon()}" />
+    <f:entry title="Icon to use" help="/plugin/mattermost/help-globalConfig-mattermostIcon.html">
+        <f:textbox  field="icon"/>
     </f:entry>
-    <f:entry title="Build Server URL" help="${rootURL}/plugin/mattermost/help-globalConfig-mattermostBuildServerUrl.html">
-        <f:textbox field="buildServerUrl" value="${descriptor.getBuildServerUrl()}" />
+    <f:entry title="Build Server URL" help="/plugin/mattermost/help-globalConfig-mattermostBuildServerUrl.html">
+        <f:textbox  field="buildServerUrl"/>
     </f:entry>
     <f:validateButton
         title="${%Test Connection}" progress="${%Testing...}"
-        method="testConnection" with="mattermostEndpoint,mattermostRoom,mattermostBuildServerUrl" />
+        method="testConnection" with="endpoint,room,buildServerUrl" />
   </f:section>
 </j:jelly>

@@ -19,10 +19,12 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.model.JenkinsLocationConfiguration;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -119,7 +121,7 @@ public class MattermostNotifier extends Notifier {
 		return notifyBackToNormal;
 	}
 
-	public boolean includeTestSummary() {
+	public boolean getIncludeTestSummary() {
 		return includeTestSummary;
 	}
 
@@ -127,7 +129,7 @@ public class MattermostNotifier extends Notifier {
 		return notifyRepeatedFailure;
 	}
 
-	public boolean includeCustomAttachmentMessage() {
+	public boolean getIncludeCustomAttachmentMessage() {
 		return includeCustomAttachmentMessage;
 	}
 
@@ -135,7 +137,7 @@ public class MattermostNotifier extends Notifier {
 		return customAttachmentMessage;
 	}
 
-	public boolean includeCustomMessage() {
+	public boolean getIncludeCustomMessage() {
 		return includeCustomMessage;
 	}
 
@@ -238,37 +240,40 @@ public class MattermostNotifier extends Notifier {
 	}
 
 	@DataBoundConstructor
-	public MattermostNotifier(final String endpoint) {
-		super();
-		this.setEndpoint(endpoint);
-	}
-
-	@Deprecated
 	public MattermostNotifier(final String endpoint, final String room, final String icon, final String buildServerUrl,
 			final String sendAs, final boolean startNotification, final boolean notifyAborted, final boolean notifyFailure,
 			final boolean notifyNotBuilt, final boolean notifySuccess, final boolean notifyUnstable, final boolean notifyBackToNormal,
-			final boolean notifyRepeatedFailure, final boolean includeTestSummary, final CommitInfoChoice commitInfoChoice,
+			final boolean notifyRepeatedFailure, final boolean includeTestSummary, CommitInfoChoice commitInfoChoice,
 			boolean includeCustomAttachmentMessage, String customAttachmentMessage, final boolean includeCustomMessage, final String customMessage) {
 		super();
-		this.setEndpoint(endpoint);
-		this.setBuildServerUrl(buildServerUrl);
-		this.setRoom(room);
-		this.setIcon(icon);
-		this.setSendAs(sendAs);
-		this.setStartNotification(startNotification);
-		this.setNotifyAborted(notifyAborted);
-		this.setNotifyFailure(notifyFailure);
-		this.setNotifyNotBuilt(notifyNotBuilt);
-		this.setNotifySuccess(notifySuccess);
-		this.setNotifyUnstable(notifyUnstable);
-		this.setNotifyBackToNormal(notifyBackToNormal);
-		this.setNotifyRepeatedFailure(notifyRepeatedFailure);
-		this.setIncludeTestSummary(includeTestSummary);
-		this.setCommitInfoChoice(commitInfoChoice);
-		this.setIncludeCustomAttachmentMessage(includeCustomAttachmentMessage);
-		this.setCustomAttachmentMessage(customAttachmentMessage);
-		this.setIncludeCustomMessage(includeCustomMessage);
-		this.setCustomMessage(customMessage);
+		this.endpoint = endpoint;
+		this.buildServerUrl = buildServerUrl;
+		this.room = room;
+		this.icon = icon;
+		this.sendAs = sendAs;
+		this.startNotification = startNotification;
+		this.notifyAborted = notifyAborted;
+		this.notifyFailure = notifyFailure;
+		this.notifyNotBuilt = notifyNotBuilt;
+		this.notifySuccess = notifySuccess;
+		this.notifyUnstable = notifyUnstable;
+		this.notifyBackToNormal = notifyBackToNormal;
+		this.notifyRepeatedFailure = notifyRepeatedFailure;
+		this.includeTestSummary = includeTestSummary;
+		this.commitInfoChoice = commitInfoChoice;
+		this.includeCustomAttachmentMessage = includeCustomAttachmentMessage;
+		if(includeCustomAttachmentMessage) {
+			this.customAttachmentMessage = customAttachmentMessage;
+		} else {
+			this.customAttachmentMessage = null;
+		}
+
+		this.includeCustomMessage = includeCustomMessage;
+		if(includeCustomMessage) {
+			this.customMessage = customMessage;
+		} else {
+			this.customMessage = null;
+		}
 	}
 
 	public BuildStepMonitor getRequiredMonitorService() {
@@ -323,7 +328,7 @@ public class MattermostNotifier extends Notifier {
 		return super.prebuild(build, listener);
 	}
 
-	@Extension
+	@Extension @Symbol("mattermostNotifier")
 	public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
 		private String endpoint;
@@ -331,9 +336,7 @@ public class MattermostNotifier extends Notifier {
 		private String icon;
 		private String buildServerUrl;
 		private String sendAs;
-
-		public static final CommitInfoChoice[] COMMIT_INFO_CHOICES = CommitInfoChoice.values();
-
+		
 		public DescriptorImpl() {
 			load();
 		}
@@ -383,42 +386,23 @@ public class MattermostNotifier extends Notifier {
 			return sendAs;
 		}
 
+		public ListBoxModel doFillCommitInfoChoiceItems() {
+			ListBoxModel model = new ListBoxModel();
+      for (CommitInfoChoice choice : CommitInfoChoice.values()) {
+				model.add(choice.getDisplayName(), choice.name());
+			}
+			return model;
+		}
+
 		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
 			return true;
 		}
 
 		@Override
-		public MattermostNotifier newInstance(StaplerRequest sr, JSONObject json) {
-			if (sr == null) {
-				return null;
-			}
-			String endpoint = sr.getParameter("mattermostEndpoint");
-			String room = sr.getParameter("mattermostRoom");
-			String icon = sr.getParameter("mattermostIcon");
-			boolean startNotification = "true".equals(sr.getParameter("mattermostStartNotification"));
-			boolean notifySuccess = "true".equals(sr.getParameter("mattermostNotifySuccess"));
-			boolean notifyAborted = "true".equals(sr.getParameter("mattermostNotifyAborted"));
-			boolean notifyNotBuilt = "true".equals(sr.getParameter("mattermostNotifyNotBuilt"));
-			boolean notifyUnstable = "true".equals(sr.getParameter("mattermostNotifyUnstable"));
-			boolean notifyFailure = "true".equals(sr.getParameter("mattermostNotifyFailure"));
-			boolean notifyBackToNormal = "true".equals(sr.getParameter("mattermostNotifyBackToNormal"));
-			boolean notifyRepeatedFailure = "true".equals(sr.getParameter("mattermostNotifyRepeatedFailure"));
-			boolean includeTestSummary = "true".equals(sr.getParameter("includeTestSummary"));
-			CommitInfoChoice commitInfoChoice = CommitInfoChoice.forDisplayName(sr.getParameter("slackCommitInfoChoice"));
-			boolean includeCustomAttachmentMessage = "on".equals(sr.getParameter("includeCustomAttachmentMessage"));
-			String customAttachmentMessage = sr.getParameter("mattermostCustomAttachmentMessage");
-			boolean includeCustomMessage = "on".equals(sr.getParameter("includeCustomMessage"));
-			String customMessage = sr.getParameter("mattermostCustomMessage");
-			return new MattermostNotifier(endpoint, room, icon, buildServerUrl, sendAs, startNotification, notifyAborted,
-					notifyFailure, notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
-					includeTestSummary, commitInfoChoice, includeCustomAttachmentMessage, customAttachmentMessage, includeCustomMessage, customMessage);
-		}
-
-		@Override
-		public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-			req.bindJSON(this, json);
-			save();
-			return true;
+		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+			req.bindJSON(this, formData);
+      save();
+      return true;
 		}
 
 		MattermostService getMattermostService(final String endpoint, final String room, final String icon) {
@@ -430,10 +414,10 @@ public class MattermostNotifier extends Notifier {
 			return "Mattermost Notifications";
 		}
 
-		public FormValidation doTestConnection(@QueryParameter("mattermostEndpoint") final String endpoint,
-				@QueryParameter("mattermostRoom") final String room,
-				@QueryParameter("mattermostIcon") final String icon,
-				@QueryParameter("mattermostBuildServerUrl") final String buildServerUrl) throws FormException {
+		public FormValidation doTestConnection(@QueryParameter("endpoint") final String endpoint,
+				@QueryParameter("room") final String room,
+				@QueryParameter("icon") final String icon,
+				@QueryParameter("buildServerUrl") final String buildServerUrl) throws FormException {
 			try {
 				String targetEndpoint = endpoint;
 				if (StringUtils.isEmpty(targetEndpoint)) {
