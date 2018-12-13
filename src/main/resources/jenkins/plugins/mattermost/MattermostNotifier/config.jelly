@@ -51,7 +51,7 @@
         </f:optionalBlock>
 
         <f:entry field="commitInfoChoice" title="Notification message includes"  description="What commit information to include into notification message">
-            <select />
+            <f:select />
         </f:entry>
 
         <f:entry title="Endpoint" help="/plugin/mattermost/help-projectConfig-mattermostEndpoint.html">
