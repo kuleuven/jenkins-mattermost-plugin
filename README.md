@@ -31,6 +31,10 @@ Run unit tests
 
     mvn test
 
+Run findbugs:
+
+    mvn findbugs:check
+
 Create an HPI file to install in Jenkins (HPI file will be in `target/mattermost.hpi`).
 
     mvn package
