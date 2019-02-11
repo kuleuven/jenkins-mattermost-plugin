@@ -28,6 +28,7 @@
     </f:entry>
     <f:validateButton
         title="${%Test Connection}" progress="${%Testing...}"
-        method="testConnection" with="endpoint,room,buildServerUrl" />
+        method="testConnection" with="endpoint,room,buildServerUrl"
+        checkMethod="post" />
   </f:section>
 </j:jelly>
