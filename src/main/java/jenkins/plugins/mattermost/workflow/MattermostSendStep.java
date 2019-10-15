@@ -3,6 +3,7 @@ package jenkins.plugins.mattermost.workflow;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.Util;
+import hudson.util.Secret;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import jenkins.plugins.mattermost.*;
@@ -136,7 +137,7 @@ public class MattermostSendStep extends AbstractStepImpl {
                 return null;
             }
             MattermostNotifier.DescriptorImpl mattermostDesc = jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
-            String team = step.endpoint != null ? step.endpoint : mattermostDesc.getEndpoint();
+            String team = step.getEndpoint() != null ? step.getEndpoint() : Secret.toString(mattermostDesc.getEndpoint());
             String channel = step.channel != null ? step.channel : mattermostDesc.getRoom();
             String icon = step.icon != null ? step.icon : mattermostDesc.getIcon();
             String color = step.color != null ? step.color : "";

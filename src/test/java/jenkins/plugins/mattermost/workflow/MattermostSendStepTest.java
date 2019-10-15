@@ -1,16 +1,20 @@
 package jenkins.plugins.mattermost.workflow;
 
 import hudson.model.TaskListener;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import jenkins.plugins.mattermost.MattermostNotifier;
 import jenkins.plugins.mattermost.MattermostService;
+import jenkins.security.ConfidentialStore;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.PrintStream;
@@ -25,7 +29,8 @@ import static org.powermock.api.mockito.PowerMockito.spy;
  * Traditional Unit tests, allows testing null Jenkins,getInstance()
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Jenkins.class, MattermostSendStep.class})
+@PrepareForTest({Jenkins.class, ConfidentialStore.class, MattermostSendStep.class})
+@PowerMockIgnore({"javax.crypto.*" }) // https://github.com/powermock/powermock/issues/294
 public class MattermostSendStepTest {
 
     @Mock
@@ -88,7 +93,13 @@ public class MattermostSendStepTest {
 
         stepExecution.listener = taskListenerMock;
 
-        when(mattermostDescMock.getEndpoint()).thenReturn("globalEndpoint");
+        PowerMockito.mockStatic(ConfidentialStore.class);
+        ConfidentialStore csMock = mock(ConfidentialStore.class);
+        when(ConfidentialStore.get()).thenReturn(csMock);
+        when(csMock.randomBytes(Matchers.anyInt())).thenAnswer( it -> new byte[ (Integer)(it.getArguments()[0])] );
+
+        Secret encryptedEndpoint = Secret.fromString("globalEndpoint");
+        when(mattermostDescMock.getEndpoint()).thenReturn(encryptedEndpoint);
         when(mattermostDescMock.getIcon()).thenReturn("globalIcon");
         when(mattermostDescMock.getRoom()).thenReturn("globalChannel");
 
@@ -128,7 +139,7 @@ public class MattermostSendStepTest {
         verify(mattermostServiceMock, times(1)).publish("message", "", "");
         assertNull(stepExecution.step.getColor());
     }
-    
+
     @Test
     public void testNonNullPretext() throws Exception {
 

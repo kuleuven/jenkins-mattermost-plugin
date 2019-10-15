@@ -20,6 +20,7 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import jenkins.model.JenkinsLocationConfiguration;
 import net.sf.json.JSONObject;
@@ -39,7 +40,7 @@ public class MattermostNotifier extends Notifier {
 
   private static final Logger logger = Logger.getLogger(MattermostNotifier.class.getName());
 
-  private String endpoint;
+  private Secret endpoint;
   private String buildServerUrl;
   private String room;
   private String icon;
@@ -65,7 +66,7 @@ public class MattermostNotifier extends Notifier {
     return (DescriptorImpl)super.getDescriptor();
   }
 
-  public String getEndpoint() {
+  public Secret getEndpoint() {
     return endpoint;
   }
 
@@ -148,8 +149,8 @@ public class MattermostNotifier extends Notifier {
     return customMessage;
   }
 
-  public void setEndpoint(@CheckForNull String endpoint) {
-    this.endpoint = fixNull(endpoint);
+  public void setEndpoint(String endpoint) {
+    this.endpoint = Secret.fromString(endpoint);
   }
 
   @DataBoundSetter
@@ -243,7 +244,7 @@ public class MattermostNotifier extends Notifier {
   }
 
   @DataBoundConstructor
-  public MattermostNotifier(final String endpoint, final String room, final String icon, final String buildServerUrl,
+  public MattermostNotifier(final Secret endpoint, final String room, final String icon, final String buildServerUrl,
       final String sendAs, final boolean startNotification, final boolean notifyAborted, final boolean notifyFailure,
       final boolean notifyNotBuilt, final boolean notifySuccess, final boolean notifyUnstable, final boolean notifyBackToNormal,
       final boolean notifyRepeatedFailure, final boolean includeTestSummary, CommitInfoChoice commitInfoChoice,
@@ -284,9 +285,9 @@ public class MattermostNotifier extends Notifier {
   }
 
   public MattermostService newMattermostService(AbstractBuild r, BuildListener listener) {
-    String endpoint = this.endpoint;
+    String endpoint = Secret.toString(this.getEndpoint());
     if (StringUtils.isEmpty(endpoint)) {
-      endpoint = getDescriptor().getEndpoint();
+      endpoint = Secret.toString(getDescriptor().getEndpoint());
     }
     String room = this.room;
     if (StringUtils.isEmpty(room)) {
@@ -334,7 +335,7 @@ public class MattermostNotifier extends Notifier {
   @Extension @Symbol("mattermostNotifier")
   public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-    private String endpoint;
+    private Secret endpoint;
     private String room;
     private String icon;
     private String buildServerUrl;
@@ -344,12 +345,20 @@ public class MattermostNotifier extends Notifier {
       load();
     }
 
-    @DataBoundSetter
     public void setEndpoint(String endpoint) {
+      if (endpoint == null) {
+        this.endpoint = null;
+        return;
+      }
+      this.setEndpoint(Secret.fromString(endpoint));
+    }
+
+    @DataBoundSetter
+    public void setEndpoint(Secret endpoint) {
       this.endpoint = endpoint;
     }
 
-    public String getEndpoint() {
+    public Secret getEndpoint() {
       return endpoint;
     }
 
@@ -430,7 +439,7 @@ public class MattermostNotifier extends Notifier {
         try {
           String targetEndpoint = endpoint;
           if (StringUtils.isEmpty(targetEndpoint)) {
-            targetEndpoint = this.endpoint;
+            targetEndpoint = Secret.toString(this.getEndpoint());
           }
           String targetRoom = room;
           if (StringUtils.isEmpty(targetRoom)) {
@@ -635,8 +644,8 @@ public class MattermostNotifier extends Notifier {
         } else {
           logger.info(String.format("Starting migration for \"%s\"", p.getName()));
           //map settings
-          if (StringUtils.isBlank(mattermostNotifier.endpoint)) {
-            mattermostNotifier.endpoint = mattermostJobProperty.getEndpoint();
+          if (StringUtils.isBlank(Secret.toString(mattermostNotifier.getEndpoint()))) {
+            mattermostNotifier.setEndpoint(mattermostJobProperty.getEndpoint());
           }
           if (StringUtils.isBlank(mattermostNotifier.icon)) {
             mattermostNotifier.icon = mattermostJobProperty.getIcon();

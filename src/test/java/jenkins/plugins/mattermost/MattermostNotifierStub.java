@@ -1,5 +1,7 @@
 package jenkins.plugins.mattermost;
 
+import hudson.util.Secret;
+
 public class MattermostNotifierStub extends MattermostNotifier {
 
 	public MattermostNotifierStub(String host, String room, String icon, String buildServerUrl,
@@ -7,7 +9,7 @@ public class MattermostNotifierStub extends MattermostNotifier {
 			boolean notifyNotBuilt, boolean notifySuccess, boolean notifyUnstable, boolean notifyBackToNormal,
 			boolean notifyRepeatedFailure, boolean includeTestSummary, CommitInfoChoice commitInfoChoice,
 			boolean includeCustomAttachmentMessage, String customAttachmentMessage,boolean includeCustomMessage,String customMessage) {
-		super(host, room, icon, buildServerUrl, sendAs, startNotification, notifyAborted, notifyFailure,
+    super(host != null ? Secret.fromString(host) : null, room, icon, buildServerUrl, sendAs, startNotification, notifyAborted, notifyFailure,
 				notifyNotBuilt, notifySuccess, notifyUnstable, notifyBackToNormal, notifyRepeatedFailure,
 				includeTestSummary, commitInfoChoice, includeCustomAttachmentMessage, customAttachmentMessage, includeCustomMessage, customMessage);
 	}
