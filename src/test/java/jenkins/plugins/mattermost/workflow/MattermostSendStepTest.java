@@ -47,8 +47,8 @@ public class MattermostSendStepTest {
 
   @Test
   public void testStepOverrides() throws Exception {
-    MattermostSendStep.SlackSendStepExecution stepExecution =
-        spy(new MattermostSendStep.SlackSendStepExecution());
+    MattermostSendStep.MattermostSendStepExecution stepExecution =
+        spy(new MattermostSendStep.MattermostSendStepExecution());
     MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
     mattermostSendStep.setIcon("icon");
     mattermostSendStep.setEndpoint("endpoint");
@@ -78,8 +78,8 @@ public class MattermostSendStepTest {
   @Test
   public void testValuesForGlobalConfig() throws Exception {
 
-    MattermostSendStep.SlackSendStepExecution stepExecution =
-        spy(new MattermostSendStep.SlackSendStepExecution());
+    MattermostSendStep.MattermostSendStepExecution stepExecution =
+        spy(new MattermostSendStep.MattermostSendStepExecution());
     stepExecution.step = new MattermostSendStep("message");
 
     when(Jenkins.getInstance()).thenReturn(jenkins);
@@ -117,8 +117,8 @@ public class MattermostSendStepTest {
   @Test
   public void testNonNullEmptyColor() throws Exception {
 
-    MattermostSendStep.SlackSendStepExecution stepExecution =
-        spy(new MattermostSendStep.SlackSendStepExecution());
+    MattermostSendStep.MattermostSendStepExecution stepExecution =
+        spy(new MattermostSendStep.MattermostSendStepExecution());
     MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
     mattermostSendStep.setColor("");
     stepExecution.step = mattermostSendStep;
@@ -141,8 +141,8 @@ public class MattermostSendStepTest {
   @Test
   public void testNonNullPretext() throws Exception {
 
-    MattermostSendStep.SlackSendStepExecution stepExecution =
-        spy(new MattermostSendStep.SlackSendStepExecution());
+    MattermostSendStep.MattermostSendStepExecution stepExecution =
+        spy(new MattermostSendStep.MattermostSendStepExecution());
     MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
     mattermostSendStep.setText("@foo @bar");
     stepExecution.step = mattermostSendStep;
@@ -164,8 +164,8 @@ public class MattermostSendStepTest {
   @Test
   public void testNullJenkinsInstance() throws Exception {
 
-    MattermostSendStep.SlackSendStepExecution stepExecution =
-        spy(new MattermostSendStep.SlackSendStepExecution());
+    MattermostSendStep.MattermostSendStepExecution stepExecution =
+        spy(new MattermostSendStep.MattermostSendStepExecution());
     stepExecution.step = new MattermostSendStep("message");
 
     when(Jenkins.getInstance()).thenThrow(NullPointerException.class);

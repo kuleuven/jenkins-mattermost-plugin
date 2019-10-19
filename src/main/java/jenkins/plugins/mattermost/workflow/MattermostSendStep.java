@@ -95,7 +95,7 @@ public class MattermostSendStep extends AbstractStepImpl {
   public static class DescriptorImpl extends AbstractStepDescriptorImpl {
 
     public DescriptorImpl() {
-      super(SlackSendStepExecution.class);
+      super(MattermostSendStepExecution.class);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class MattermostSendStep extends AbstractStepImpl {
     }
   }
 
-  public static class SlackSendStepExecution
+  public static class MattermostSendStepExecution
       extends AbstractSynchronousNonBlockingStepExecution<Void> {
 
     private static final long serialVersionUID = 1L;
