@@ -1,10 +1,6 @@
 package jenkins.plugins.mattermost;
 
-import javax.annotation.CheckForNull;
-import java.io.IOException;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static hudson.Util.fixNull;
 
 import hudson.EnvVars;
 import hudson.Extension;
@@ -21,6 +17,11 @@ import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
+import java.io.IOException;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.CheckForNull;
 import jenkins.model.Jenkins;
 import jenkins.model.JenkinsLocationConfiguration;
 import net.sf.json.JSONObject;
@@ -32,9 +33,6 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.verb.POST;
-
-import static hudson.Util.fixNull;
-
 
 public class MattermostNotifier extends Notifier {
 
@@ -54,7 +52,7 @@ public class MattermostNotifier extends Notifier {
   private boolean notifyBackToNormal;
   private boolean notifyRepeatedFailure;
   private boolean includeTestSummary;
-  transient private boolean showCommitList;
+  private transient boolean showCommitList;
   private CommitInfoChoice commitInfoChoice;
   private boolean includeCustomAttachmentMessage;
   private String customAttachmentMessage;
@@ -63,7 +61,7 @@ public class MattermostNotifier extends Notifier {
 
   @Override
   public DescriptorImpl getDescriptor() {
-    return (DescriptorImpl)super.getDescriptor();
+    return (DescriptorImpl) super.getDescriptor();
   }
 
   public Secret getEndpoint() {
@@ -244,11 +242,26 @@ public class MattermostNotifier extends Notifier {
   }
 
   @DataBoundConstructor
-  public MattermostNotifier(final Secret endpoint, final String room, final String icon, final String buildServerUrl,
-      final String sendAs, final boolean startNotification, final boolean notifyAborted, final boolean notifyFailure,
-      final boolean notifyNotBuilt, final boolean notifySuccess, final boolean notifyUnstable, final boolean notifyBackToNormal,
-      final boolean notifyRepeatedFailure, final boolean includeTestSummary, CommitInfoChoice commitInfoChoice,
-      boolean includeCustomAttachmentMessage, String customAttachmentMessage, final boolean includeCustomMessage, final String customMessage) {
+  public MattermostNotifier(
+      final Secret endpoint,
+      final String room,
+      final String icon,
+      final String buildServerUrl,
+      final String sendAs,
+      final boolean startNotification,
+      final boolean notifyAborted,
+      final boolean notifyFailure,
+      final boolean notifyNotBuilt,
+      final boolean notifySuccess,
+      final boolean notifyUnstable,
+      final boolean notifyBackToNormal,
+      final boolean notifyRepeatedFailure,
+      final boolean includeTestSummary,
+      CommitInfoChoice commitInfoChoice,
+      boolean includeCustomAttachmentMessage,
+      String customAttachmentMessage,
+      final boolean includeCustomMessage,
+      final String customMessage) {
     super();
     this.endpoint = endpoint;
     this.buildServerUrl = buildServerUrl;
@@ -266,14 +279,14 @@ public class MattermostNotifier extends Notifier {
     this.includeTestSummary = includeTestSummary;
     this.commitInfoChoice = commitInfoChoice;
     this.includeCustomAttachmentMessage = includeCustomAttachmentMessage;
-    if(includeCustomAttachmentMessage) {
+    if (includeCustomAttachmentMessage) {
       this.customAttachmentMessage = customAttachmentMessage;
     } else {
       this.customAttachmentMessage = null;
     }
 
     this.includeCustomMessage = includeCustomMessage;
-    if(includeCustomMessage) {
+    if (includeCustomMessage) {
       this.customMessage = customMessage;
     } else {
       this.customMessage = null;
@@ -314,7 +327,8 @@ public class MattermostNotifier extends Notifier {
   }
 
   @Override
-  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+      throws InterruptedException, IOException {
     return true;
   }
 
@@ -325,14 +339,15 @@ public class MattermostNotifier extends Notifier {
       for (Publisher publisher : map.values()) {
         if (publisher instanceof MattermostNotifier) {
           logger.info("Invoking Started...");
-          new ActiveNotifier((MattermostNotifier)publisher, listener).started(build);
+          new ActiveNotifier((MattermostNotifier) publisher, listener).started(build);
         }
       }
     }
     return super.prebuild(build, listener);
   }
 
-  @Extension @Symbol("mattermostNotifier")
+  @Extension
+  @Symbol("mattermostNotifier")
   public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
     private Secret endpoint;
@@ -419,7 +434,8 @@ public class MattermostNotifier extends Notifier {
       return true;
     }
 
-    MattermostService getMattermostService(final String endpoint, final String room, final String icon) {
+    MattermostService getMattermostService(
+        final String endpoint, final String room, final String icon) {
       return new StandardMattermostService(endpoint, room, icon);
     }
 
@@ -429,47 +445,57 @@ public class MattermostNotifier extends Notifier {
     }
 
     @POST
-    public FormValidation doTestConnection(@QueryParameter("endpoint") final String endpoint,
+    public FormValidation doTestConnection(
+        @QueryParameter("endpoint") final String endpoint,
         @QueryParameter("room") final String room,
         @QueryParameter("icon") final String icon,
-        @QueryParameter("buildServerUrl") final String buildServerUrl) throws FormException {
-        if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
-          return FormValidation.error("Insufficient permission.");
+        @QueryParameter("buildServerUrl") final String buildServerUrl)
+        throws FormException {
+      if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+        return FormValidation.error("Insufficient permission.");
+      }
+      try {
+        String targetEndpoint = endpoint;
+        if (StringUtils.isEmpty(targetEndpoint)) {
+          targetEndpoint = Secret.toString(this.getEndpoint());
         }
-        try {
-          String targetEndpoint = endpoint;
-          if (StringUtils.isEmpty(targetEndpoint)) {
-            targetEndpoint = Secret.toString(this.getEndpoint());
-          }
-          String targetRoom = room;
-          if (StringUtils.isEmpty(targetRoom)) {
-            targetRoom = this.room;
-          }
-          String targetIcon = icon;
-          if (StringUtils.isEmpty(targetIcon)) {
-            targetIcon = this.icon;
-          }
-          String targetBuildServerUrl = buildServerUrl;
-          if (StringUtils.isEmpty(targetBuildServerUrl)) {
-            targetBuildServerUrl = this.buildServerUrl;
-          }
-          MattermostService testMattermostService = getMattermostService(targetEndpoint, targetRoom, targetIcon);
-          String message = "Mattermost/Jenkins plugin: you're all set! (parameters: " +
-            "room='" + targetRoom + "', " +
-            "icon='" + targetIcon + "', " +
-            "buildServerUrl='" + targetBuildServerUrl + "'" +
-            ")";
-          boolean success = testMattermostService.publish(message, "good");
-          return success ? FormValidation.ok("Success") : FormValidation.error("Failure");
-        } catch (Exception e) {
-          return FormValidation.error("Client error : " + e.getMessage());
+        String targetRoom = room;
+        if (StringUtils.isEmpty(targetRoom)) {
+          targetRoom = this.room;
         }
+        String targetIcon = icon;
+        if (StringUtils.isEmpty(targetIcon)) {
+          targetIcon = this.icon;
+        }
+        String targetBuildServerUrl = buildServerUrl;
+        if (StringUtils.isEmpty(targetBuildServerUrl)) {
+          targetBuildServerUrl = this.buildServerUrl;
+        }
+        MattermostService testMattermostService =
+            getMattermostService(targetEndpoint, targetRoom, targetIcon);
+        String message =
+            "Mattermost/Jenkins plugin: you're all set! (parameters: "
+                + "room='"
+                + targetRoom
+                + "', "
+                + "icon='"
+                + targetIcon
+                + "', "
+                + "buildServerUrl='"
+                + targetBuildServerUrl
+                + "'"
+                + ")";
+        boolean success = testMattermostService.publish(message, "good");
+        return success ? FormValidation.ok("Success") : FormValidation.error("Failure");
+      } catch (Exception e) {
+        return FormValidation.error("Client error : " + e.getMessage());
+      }
     }
   }
 
-
   @Deprecated
-  public static class MattermostJobProperty extends hudson.model.JobProperty<AbstractProject<?, ?>> {
+  public static class MattermostJobProperty
+      extends hudson.model.JobProperty<AbstractProject<?, ?>> {
 
     private String endpoint;
     private String room;
@@ -490,7 +516,8 @@ public class MattermostNotifier extends Notifier {
     private boolean includeCustomMessage;
 
     @DataBoundConstructor
-    public MattermostJobProperty(String teamDomain,
+    public MattermostJobProperty(
+        String teamDomain,
         String room,
         String icon,
         boolean startNotification,
@@ -617,7 +644,6 @@ public class MattermostNotifier extends Notifier {
     }
   }
 
-
   @Extension
   public static final class Migrator extends ItemListener {
 
@@ -626,24 +652,27 @@ public class MattermostNotifier extends Notifier {
     public void onLoaded() {
       logger.info("Starting Settings Migration Process");
       for (AbstractProject<?, ?> p : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
-        final MattermostJobProperty mattermostJobProperty = p.getProperty(MattermostJobProperty.class);
+        final MattermostJobProperty mattermostJobProperty =
+            p.getProperty(MattermostJobProperty.class);
 
         if (mattermostJobProperty == null) {
-          logger.fine(String
-              .format("Configuration is already up to date for \"%s\", skipping migration",
-                p.getName()));
+          logger.fine(
+              String.format(
+                  "Configuration is already up to date for \"%s\", skipping migration",
+                  p.getName()));
           continue;
         }
 
         MattermostNotifier mattermostNotifier = p.getPublishersList().get(MattermostNotifier.class);
 
         if (mattermostNotifier == null) {
-          logger.fine(String
-              .format("Configuration does not have a notifier for \"%s\", not migrating settings",
-                p.getName()));
+          logger.fine(
+              String.format(
+                  "Configuration does not have a notifier for \"%s\", not migrating settings",
+                  p.getName()));
         } else {
           logger.info(String.format("Starting migration for \"%s\"", p.getName()));
-          //map settings
+          // map settings
           if (StringUtils.isBlank(Secret.toString(mattermostNotifier.getEndpoint()))) {
             mattermostNotifier.setEndpoint(mattermostJobProperty.getEndpoint());
           }
@@ -662,18 +691,24 @@ public class MattermostNotifier extends Notifier {
           mattermostNotifier.notifySuccess = mattermostJobProperty.getNotifySuccess();
           mattermostNotifier.notifyUnstable = mattermostJobProperty.getNotifyUnstable();
           mattermostNotifier.notifyBackToNormal = mattermostJobProperty.getNotifyBackToNormal();
-          mattermostNotifier.notifyRepeatedFailure = mattermostJobProperty.getNotifyRepeatedFailure();
+          mattermostNotifier.notifyRepeatedFailure =
+              mattermostJobProperty.getNotifyRepeatedFailure();
 
           mattermostNotifier.includeTestSummary = mattermostJobProperty.includeTestSummary();
-          mattermostNotifier.commitInfoChoice = mattermostJobProperty.getShowCommitList() ? CommitInfoChoice.AUTHORS_AND_TITLES : CommitInfoChoice.NONE;
-          mattermostNotifier.includeCustomAttachmentMessage = mattermostJobProperty.includeCustomAttachmentMessage();
-          mattermostNotifier.customAttachmentMessage = mattermostJobProperty.getCustomAttachmentMessage();
+          mattermostNotifier.commitInfoChoice =
+              mattermostJobProperty.getShowCommitList()
+                  ? CommitInfoChoice.AUTHORS_AND_TITLES
+                  : CommitInfoChoice.NONE;
+          mattermostNotifier.includeCustomAttachmentMessage =
+              mattermostJobProperty.includeCustomAttachmentMessage();
+          mattermostNotifier.customAttachmentMessage =
+              mattermostJobProperty.getCustomAttachmentMessage();
           mattermostNotifier.includeCustomMessage = mattermostJobProperty.includeCustomMessage();
           mattermostNotifier.customMessage = mattermostJobProperty.getCustomMessage();
         }
 
         try {
-          //property section is not used anymore - remove
+          // property section is not used anymore - remove
           p.removeProperty(MattermostJobProperty.class);
           p.save();
           logger.info("Configuration updated successfully");
