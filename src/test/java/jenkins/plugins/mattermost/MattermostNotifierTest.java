@@ -15,7 +15,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 @RunWith(Parameterized.class)
 public class MattermostNotifierTest extends TestCase {
 
-  private MattermostNotifierStub.DescriptorImplStub descriptor;
+  private MattermostNotifierStub.DescriptorStub descriptor;
   private MattermostServiceStub mattermostServiceStub;
   private boolean response;
   private FormValidation.Kind expectedResult;
@@ -26,7 +26,7 @@ public class MattermostNotifierTest extends TestCase {
   @Override
   public void setUp() {
     j.getInstance().getInjector().injectMembers(this);
-    descriptor = new MattermostNotifierStub.DescriptorImplStub();
+    descriptor = new MattermostNotifierStub.DescriptorStub();
   }
 
   public MattermostNotifierTest(
