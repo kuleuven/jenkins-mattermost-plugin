@@ -14,7 +14,7 @@
     <parent>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>plugin</artifactId>
-      <version>2.11</version>
+      <version>3.50</version>
     </parent>
 
     <artifactId>mattermost</artifactId>
@@ -27,11 +27,9 @@
     <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-      <workflow.version>1.11</workflow.version>
-      <hamcrest.version>1.3</hamcrest.version>
-      <jenkins.version>2.0</jenkins.version>
+      <hamcrest.version>2.1</hamcrest.version>
+      <jenkins.version>2.190.1</jenkins.version>
       <java.level>8</java.level>
-      <jenkins-test-harness.version>2.13</jenkins-test-harness.version>
     </properties>
 
     <licenses>
@@ -53,17 +51,17 @@
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>junit</artifactId>
-        <version>1.18</version>
+        <version>1.28</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>script-security</artifactId>
+        <version>1.62</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>2.9.10.1</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-httpclient</groupId>
-        <artifactId>commons-httpclient</artifactId>
-        <version>3.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -82,15 +80,14 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.10</version>
-        <scope>test</scope>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>structs</artifactId>
+        <version>1.20</version>
       </dependency>
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.10</version>
+        <version>1.12</version>
         <scope>test</scope>
       </dependency>
       <!-- only here to prevent from being included inside hpi for hudson parent, not needed by project at all -->
@@ -107,8 +104,32 @@
         <version>1.0.4</version>
         <scope>provided</scope>
       </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>log4j-over-slf4j</artifactId>
+        <version>1.7.26</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>1.7.26</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.26</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-jdk14</artifactId>
+        <version>1.7.26</version>
+        <scope>provided</scope>
+      </dependency>
       <!--
-            Adding JNA to fix failing unit tests on Ubuntu 14.04
+           Adding JNA to fix failing unit tests on Ubuntu 14.04
             https://bugs.launchpad.net/ubuntu/+source/libjna-java/+bug/1065253
         -->
         <dependency>
@@ -119,28 +140,25 @@
         <!-- for workflow support -->
         <dependency>
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-step-api</artifactId>
-          <version>${workflow.version}</version>
-          <optional>true</optional>
+          <artifactId>workflow-cps</artifactId>
+          <version>2.74</version>
+          <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-cps</artifactId>
-          <version>${workflow.version}</version>
+          <artifactId>workflow-api</artifactId>
+          <version>2.36</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-job</artifactId>
-          <version>${workflow.version}</version>
-          <scope>test</scope>
+          <version>2.11.1</version>
         </dependency>
         <dependency> <!-- StepConfigTester -->
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-step-api</artifactId>
-          <classifier>tests</classifier>
-          <version>${workflow.version}</version>
-          <scope>test</scope>
+          <version>2.20</version>
         </dependency>
 
         <dependency>

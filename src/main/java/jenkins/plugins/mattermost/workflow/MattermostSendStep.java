@@ -1,23 +1,27 @@
 package jenkins.plugins.mattermost.workflow;
 
+import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.Util;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import jenkins.model.Jenkins;
-import jenkins.plugins.mattermost.*;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
-import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
+import jenkins.plugins.mattermost.MattermostNotifier;
+import jenkins.plugins.mattermost.MattermostService;
+import jenkins.plugins.mattermost.StandardMattermostService;
+import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import java.util.Set;
+
 /** Workflow step to send a Mattermost channel notification. */
-public class MattermostSendStep extends AbstractStepImpl {
+public class MattermostSendStep extends Step
+{
 
   private final @Nonnull String message;
   private String text;
@@ -91,11 +95,24 @@ public class MattermostSendStep extends AbstractStepImpl {
     this.message = message;
   }
 
+	@Override
+	public StepExecution start(StepContext context)
+	{
+		return new MattermostSendStepExecution();
+	}
+
   @Extension
-  public static class DescriptorImpl extends AbstractStepDescriptorImpl {
+  public static class DescriptorImpl extends StepDescriptor
+  {
 
     public DescriptorImpl() {
-      super(MattermostSendStepExecution.class);
+		super();
+	}
+
+	  @Override
+	  public Set<? extends Class<?>> getRequiredContext()
+	  {
+		  return ImmutableSet.of(Run.class, TaskListener.class);
     }
 
     @Override
@@ -112,57 +129,65 @@ public class MattermostSendStep extends AbstractStepImpl {
   public static class MattermostSendStepExecution
       extends AbstractSynchronousNonBlockingStepExecution<Void> {
 
-    private static final long serialVersionUID = 1L;
+	  private static final long serialVersionUID = 1L;
 
-    @Inject transient MattermostSendStep step;
+	  @Inject
+	  transient MattermostSendStep step;
 
-    @StepContextParameter transient TaskListener listener;
+	  @StepContextParameter
+	  transient TaskListener listener;
 
-    @Override
-    protected Void run() throws Exception {
+	  @Override
+	  protected Void run() throws Exception
+	  {
 
-      // default to global config values if not set in step, but allow step to
-      // override all global settings
-      Jenkins jenkins;
-      // Jenkins.getInstance() may return null, no message sent in that case
-      try {
-        jenkins = Jenkins.getInstance();
-      } catch (NullPointerException ne) {
-        listener.error(String.format("Mattermost notification failed with exception: %s", ne), ne);
-        return null;
-      }
-      MattermostNotifier.DescriptorImpl mattermostDesc =
+		  // default to global config values if not set in step, but allow step to
+		  // override all global settings
+		  Jenkins jenkins;
+		  // Jenkins.getInstance() may return null, no message sent in that case
+		  try
+		  {
+			  jenkins = Jenkins.getInstance();
+		  } catch (NullPointerException ne)
+		  {
+			  listener.error(String.format("Mattermost notification failed with exception: %s", ne), ne);
+			  return null;
+		  }
+		  MattermostNotifier.DescriptorImpl mattermostDesc =
           jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
-      String team =
+		  String team =
           step.getEndpoint() != null
-              ? step.getEndpoint()
-              : Secret.toString(mattermostDesc.getEndpoint());
-      String channel = step.channel != null ? step.channel : mattermostDesc.getRoom();
-      String icon = step.icon != null ? step.icon : mattermostDesc.getIcon();
-      String color = step.color != null ? step.color : "";
-      String text = step.text != null ? step.text : "";
+				  ? step.getEndpoint()
+				  : Secret.toString(mattermostDesc.getEndpoint());
+		  String channel = step.channel != null ? step.channel : mattermostDesc.getRoom();
+		  String icon = step.icon != null ? step.icon : mattermostDesc.getIcon();
+		  String color = step.color != null ? step.color : "";
+		  String text = step.text != null ? step.text : "";
 
-      // placing in console log to simplify testing of retrieving values from global
-      // config or from step field; also used for tests
-      listener
+		  // placing in console log to simplify testing of retrieving values from global
+		  // config or from step field; also used for tests
+		  listener
           .getLogger()
           .printf(
               "Mattermost Send Pipeline step configured values from global config - connector: %s, icon: %s, channel: %s, color: %s",
               step.endpoint == null, step.icon == null, step.channel == null, step.color == null);
 
-      MattermostService mattermostService = getMattermostService(team, channel, icon);
-      boolean publishSuccess = mattermostService.publish(step.message, text, color);
-      if (!publishSuccess && step.failOnError) {
-        throw new AbortException("Mattermost notification failed. See Jenkins logs for details.");
-      } else if (!publishSuccess) {
-        listener.error("Mattermost notification failed. See Jenkins logs for details.");
-      }
-      return null;
-    }
+		  MattermostService mattermostService = getMattermostService(team, channel, icon);
+		  boolean publishSuccess = mattermostService.publish(step.message, text, color);
+		  if (!publishSuccess && step.failOnError)
+		  {
+			  throw new AbortException("Mattermost notification failed. See Jenkins logs for details.");
+		  } else if (!publishSuccess)
+		  {
+			  listener.error("Mattermost notification failed. See Jenkins logs for details.");
+		  }
+		  return null;
+	  }
 
-    // streamline unit testing
-    MattermostService getMattermostService(String team, String channel, String icon) {
-      return new StandardMattermostService(team, channel, icon);
-    }
+	  // streamline unit testing
+	  MattermostService getMattermostService(String team, String channel, String icon)
+	  {
+		  return new StandardMattermostService(team, channel, icon);
+	  }
   }
 }

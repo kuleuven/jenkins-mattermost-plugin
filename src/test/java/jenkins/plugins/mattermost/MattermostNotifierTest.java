@@ -2,8 +2,6 @@ package jenkins.plugins.mattermost;
 
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
-import java.util.Arrays;
-import java.util.Collection;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Rule;
@@ -12,10 +10,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 @RunWith(Parameterized.class)
 public class MattermostNotifierTest extends TestCase {
 
-  private MattermostNotifierStub.DescriptorImplStub descriptor;
+	private MattermostNotifierStub.DescriptorStub descriptor;
   private MattermostServiceStub mattermostServiceStub;
   private boolean response;
   private FormValidation.Kind expectedResult;
@@ -26,7 +27,7 @@ public class MattermostNotifierTest extends TestCase {
   @Override
   public void setUp() {
     j.getInstance().getInjector().injectMembers(this);
-    descriptor = new MattermostNotifierStub.DescriptorImplStub();
+	  descriptor = new MattermostNotifierStub.DescriptorStub();
   }
 
   public MattermostNotifierTest(

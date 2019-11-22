@@ -46,7 +46,8 @@ public class MattermostNotifierStub extends MattermostNotifier {
         customMessage);
   }
 
-  public static class DescriptorImplStub extends MattermostNotifier.DescriptorImpl {
+	public static class DescriptorStub extends MattermostNotifier.DescriptorImpl
+	{
 
     private MattermostService mattermostService;
 
