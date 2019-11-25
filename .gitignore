@@ -6,4 +6,8 @@ target
 .settings
 bin
 work
-*.iml
+.gradle
+/build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
