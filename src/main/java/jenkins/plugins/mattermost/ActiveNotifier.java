@@ -1,31 +1,24 @@
 package jenkins.plugins.mattermost;
 
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.SEVERE;
-
 import hudson.EnvVars;
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.Result;
-import hudson.model.Run;
+import hudson.model.*;
 import hudson.scm.ChangeLogSet;
-import hudson.scm.ChangeLogSet.AffectedFile;
-import hudson.scm.ChangeLogSet.Entry;
 import hudson.tasks.test.AbstractTestResultAction;
-import hudson.triggers.SCMTrigger;
 import hudson.util.LogTaskListener;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
+
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+
+
 
 @SuppressWarnings("rawtypes")
 public class ActiveNotifier implements FineGrainedNotifier {
@@ -54,8 +47,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
     CauseAction causeAction = build.getAction(CauseAction.class);
 
     if (causeAction != null) {
-      Cause scmCause = causeAction.findCause(SCMTrigger.SCMTriggerCause.class);
-      if (scmCause == null) {
+		//TODO CHANGED
+		//Cause scmCause = causeAction.findCause(SCMTrigger.SCMTriggerCause.class);
+		List<Cause> scmCauses = causeAction.getCauses();
+		if (scmCauses.size() == 0)
+		{
         MessageBuilder message = new MessageBuilder(notifier, build);
         message.append(causeAction.getShortDescription());
         notifyStart(build, message.appendOpenLink().toString());
@@ -136,10 +132,10 @@ public class ActiveNotifier implements FineGrainedNotifier {
       return null;
     }
     ChangeLogSet changeSet = r.getChangeSet();
-    List<Entry> entries = new LinkedList<Entry>();
-    Set<AffectedFile> files = new HashSet<AffectedFile>();
+	  List<ChangeLogSet.Entry> entries = new LinkedList<>();
+	  Set<ChangeLogSet.AffectedFile> files = new HashSet<ChangeLogSet.AffectedFile>();
     for (Object o : changeSet.getItems()) {
-      Entry entry = (Entry) o;
+		ChangeLogSet.Entry entry = (ChangeLogSet.Entry) o;
       logger.info("Entry " + o);
       entries.add(entry);
       files.addAll(entry.getAffectedFiles());
@@ -149,7 +145,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
       return null;
     }
     Set<String> authors = new HashSet<String>();
-    for (Entry entry : entries) {
+	  for (ChangeLogSet.Entry entry : entries)
+	  {
       authors.add(entry.getAuthor().getDisplayName());
     }
     MessageBuilder message = new MessageBuilder(notifier, r);
@@ -167,9 +164,9 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
   String getCommitList(AbstractBuild r) {
     ChangeLogSet changeSet = r.getChangeSet();
-    List<Entry> entries = new LinkedList<Entry>();
+	  List<ChangeLogSet.Entry> entries = new LinkedList<ChangeLogSet.Entry>();
     for (Object o : changeSet.getItems()) {
-      Entry entry = (Entry) o;
+		ChangeLogSet.Entry entry = (ChangeLogSet.Entry) o;
       logger.info("Entry " + o);
       entries.add(entry);
     }
@@ -190,7 +187,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
       return getCommitList(upBuild);
     }
     Set<String> commits = new HashSet<String>();
-    for (Entry entry : entries) {
+	  for (ChangeLogSet.Entry entry : entries)
+	  {
       StringBuffer commit = new StringBuffer();
       CommitInfoChoice commitInfoChoice = notifier.getCommitInfoChoice();
       if (commitInfoChoice.showTitle()) {
@@ -412,14 +410,18 @@ public class ActiveNotifier implements FineGrainedNotifier {
       if (previousSuccessfulBuild == null) {
         return "unknown";
       }
-      long previousSuccessStartTime = previousSuccessfulBuild.getStartTimeInMillis();
-      long previousSuccessDuration = previousSuccessfulBuild.getDuration();
-      long previousSuccessEndTime = previousSuccessStartTime + previousSuccessDuration;
-      long buildStartTime = build.getStartTimeInMillis();
-      long buildDuration = build.getDuration();
-      long buildEndTime = buildStartTime + buildDuration;
-      long backToNormalDuration = buildEndTime - previousSuccessEndTime;
-      return Util.getTimeSpanString(backToNormalDuration);
+//      long previousSuccessStartTime = previousSuccessfulBuild.getStartTimeInMillis();
+//      long previousSuccessDuration = previousSuccessfulBuild.getDuration();
+//      long previousSuccessEndTime = previousSuccessStartTime + previousSuccessDuration;
+//      long buildStartTime = build.getStartTimeInMillis();
+//      long buildDuration = build.getDuration();
+//      long buildEndTime = buildStartTime + buildDuration;
+//      long backToNormalDuration = buildEndTime - previousSuccessEndTime;
+		//TODO CHANGED
+		long currentBuildStartTime = build.getTimeInMillis();
+		long lastSuccessBuildStartTime = build.getPreviousSuccessfulBuild().getTimeInMillis();
+		long diff = currentBuildStartTime - lastSuccessBuildStartTime;
+		return Util.getTimeSpanString(diff);
     }
 
     public String escape(String string) {

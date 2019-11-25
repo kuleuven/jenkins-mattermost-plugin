@@ -1,12 +1,12 @@
 package jenkins.plugins.mattermost;
 
-import static org.junit.Assert.*;
-
-import hudson.ProxyConfiguration;
-import java.util.Collections;
-import java.util.regex.Pattern;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 public class StandardMattermostServiceTest {
 
@@ -109,7 +109,7 @@ public class StandardMattermostServiceTest {
     StandardMattermostService service =
         new StandardMattermostService("http://mymattermost.endpoint.com", "roomid", "icon");
     assertTrue(
-        service.isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns("*.internal.com")));
+            service.isProxyRequired("*.internal.com"));
   }
 
   @Test
@@ -117,7 +117,7 @@ public class StandardMattermostServiceTest {
     StandardMattermostService service =
         new StandardMattermostService("http://mymattermost.endpoint.com", "roomid", "icon");
     assertFalse(
-        service.isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns("*.endpoint.com")));
+            service.isProxyRequired("*.endpoint.com"));
   }
 
   @Test
@@ -125,6 +125,6 @@ public class StandardMattermostServiceTest {
     StandardMattermostService service =
         new StandardMattermostService("htt://mymattermost.endpoint.com", "roomid", "icon");
     assertTrue(
-        service.isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns("*.internal.com")));
+            service.isProxyRequired("*.internal.com"));
   }
 }

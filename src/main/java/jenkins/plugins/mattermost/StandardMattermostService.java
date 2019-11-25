@@ -1,12 +1,6 @@
 package jenkins.plugins.mattermost;
 
 import hudson.ProxyConfiguration;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import jenkins.model.Jenkins;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -16,6 +10,15 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class StandardMattermostService implements MattermostService {
 
@@ -117,7 +120,8 @@ public class StandardMattermostService implements MattermostService {
     if (Jenkins.getInstance() != null) {
       ProxyConfiguration proxy = Jenkins.getInstance().proxy;
       if (proxy != null) {
-        if (isProxyRequired(proxy.getNoProxyHostPatterns())) {
+		  if (isProxyRequired(proxy.noProxyHost))
+		  {
           client.getHostConfiguration().setProxy(proxy.name, proxy.port);
           String username = proxy.getUserName();
           String password = proxy.getPassword();
@@ -153,6 +157,14 @@ public class StandardMattermostService implements MattermostService {
     }
     return true;
   }
+
+	protected boolean isProxyRequired(String... noProxyHost)
+	{
+		List<String> lst = Arrays.asList(noProxyHost);
+		List<Pattern> collect = lst.stream().map(Pattern::compile).collect(Collectors.toList());
+		return isProxyRequired(collect);
+	}
+
 
   void setEndpoint(String endpoint) {
     this.endpoint = endpoint;
