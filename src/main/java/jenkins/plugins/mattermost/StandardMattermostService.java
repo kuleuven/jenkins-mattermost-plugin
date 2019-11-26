@@ -158,13 +158,43 @@ public class StandardMattermostService implements MattermostService {
     return true;
   }
 
+  public static String createRegexFromGlob(String glob)
+  {
+    String out = "^";
+    for (int i = 0; i < glob.length(); ++i)
+    {
+      final char c = glob.charAt(i);
+      switch (c)
+      {
+        case '*':
+          out += ".*";
+          break;
+        case '?':
+          out += '.';
+          break;
+        case '.':
+          out += "\\.";
+          break;
+        case '\\':
+          out += "\\\\";
+          break;
+        default:
+          out += c;
+      }
+    }
+    out += '$';
+    return out;
+  }
+
 	protected boolean isProxyRequired(String... noProxyHost)
-	{
+    {//
 		List<String> lst = Arrays.asList(noProxyHost);
-		List<Pattern> collect = lst.stream().map(Pattern::compile).collect(Collectors.toList());
+      List<Pattern> collect = lst.stream()
+              .map(StandardMattermostService::createRegexFromGlob)
+              .map(Pattern::compile)
+              .collect(Collectors.toList());
 		return isProxyRequired(collect);
 	}
-
 
   void setEndpoint(String endpoint) {
     this.endpoint = endpoint;
