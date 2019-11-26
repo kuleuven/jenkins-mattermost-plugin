@@ -1,14 +1,8 @@
 package jenkins.plugins.mattermost.workflow;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.spy;
-
 import hudson.model.TaskListener;
+import hudson.util.HistoricalSecrets;
 import hudson.util.Secret;
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import jenkins.model.Jenkins;
 import jenkins.plugins.mattermost.MattermostNotifier;
 import jenkins.plugins.mattermost.MattermostService;
@@ -24,9 +18,17 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.spy;
+
 /** Traditional Unit tests, allows testing null Jenkins,getInstance() */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Jenkins.class, ConfidentialStore.class, MattermostSendStep.class})
+@PrepareForTest({Jenkins.class, ConfidentialStore.class, MattermostSendStep.class, HistoricalSecrets.class})
 @PowerMockIgnore({"javax.crypto.*"}) // https://github.com/powermock/powermock/issues/294
 public class MattermostSendStepTest {
 
@@ -37,26 +39,27 @@ public class MattermostSendStepTest {
   @Mock MattermostService mattermostServiceMock;
   @Mock Jenkins jenkins;
   @Mock MattermostNotifier.DescriptorImpl mattermostDescMock;
+	private MattermostSendStep.MattermostSendStepExecution stepExecution;
+	private MattermostSendStep mattermostSendStep;
 
   @Before
   public void setUp() {
     PowerMockito.mockStatic(Jenkins.class);
     when(jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class))
         .thenReturn(mattermostDescMock);
+	  stepExecution = spy(new MattermostSendStep.MattermostSendStepExecution());
+	  mattermostSendStep = new MattermostSendStep("message");
+	  stepExecution.step = mattermostSendStep;
+	  when(Jenkins.getInstance()).thenReturn(jenkins);
+	  when(Jenkins.get()).thenReturn(jenkins);
   }
 
   @Test
   public void testStepOverrides() throws Exception {
-    MattermostSendStep.MattermostSendStepExecution stepExecution =
-        spy(new MattermostSendStep.MattermostSendStepExecution());
-    MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
     mattermostSendStep.setIcon("icon");
     mattermostSendStep.setEndpoint("endpoint");
     mattermostSendStep.setChannel("channel");
     mattermostSendStep.setColor("good");
-    stepExecution.step = mattermostSendStep;
-
-    when(Jenkins.getInstance()).thenReturn(jenkins);
 
     stepExecution.listener = taskListenerMock;
 
@@ -78,11 +81,6 @@ public class MattermostSendStepTest {
   @Test
   public void testValuesForGlobalConfig() throws Exception {
 
-    MattermostSendStep.MattermostSendStepExecution stepExecution =
-        spy(new MattermostSendStep.MattermostSendStepExecution());
-    stepExecution.step = new MattermostSendStep("message");
-
-    when(Jenkins.getInstance()).thenReturn(jenkins);
 
     stepExecution.listener = taskListenerMock;
 
@@ -116,14 +114,7 @@ public class MattermostSendStepTest {
 
   @Test
   public void testNonNullEmptyColor() throws Exception {
-
-    MattermostSendStep.MattermostSendStepExecution stepExecution =
-        spy(new MattermostSendStep.MattermostSendStepExecution());
-    MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
     mattermostSendStep.setColor("");
-    stepExecution.step = mattermostSendStep;
-
-    when(Jenkins.getInstance()).thenReturn(jenkins);
 
     stepExecution.listener = taskListenerMock;
 
@@ -140,14 +131,7 @@ public class MattermostSendStepTest {
 
   @Test
   public void testNonNullPretext() throws Exception {
-
-    MattermostSendStep.MattermostSendStepExecution stepExecution =
-        spy(new MattermostSendStep.MattermostSendStepExecution());
-    MattermostSendStep mattermostSendStep = new MattermostSendStep("message");
     mattermostSendStep.setText("@foo @bar");
-    stepExecution.step = mattermostSendStep;
-
-    when(Jenkins.getInstance()).thenReturn(jenkins);
 
     stepExecution.listener = taskListenerMock;
 
@@ -164,11 +148,8 @@ public class MattermostSendStepTest {
   @Test
   public void testNullJenkinsInstance() throws Exception {
 
-    MattermostSendStep.MattermostSendStepExecution stepExecution =
-        spy(new MattermostSendStep.MattermostSendStepExecution());
-    stepExecution.step = new MattermostSendStep("message");
-
     when(Jenkins.getInstance()).thenThrow(NullPointerException.class);
+    when(Jenkins.get()).thenThrow(NullPointerException.class);
 
     stepExecution.listener = taskListenerMock;
 
