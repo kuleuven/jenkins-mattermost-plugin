@@ -47,8 +47,8 @@ public class MattermostSendStepTest {
     PowerMockito.mockStatic(Jenkins.class);
     when(jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class))
         .thenReturn(mattermostDescMock);
-	  stepExecution = spy(new MattermostSendStep.MattermostSendStepExecution());
 	  mattermostSendStep = new MattermostSendStep("message");
+	  stepExecution = spy(new MattermostSendStep.MattermostSendStepExecution(stepContextMock, mattermostSendStep));
 	  stepExecution.step = mattermostSendStep;
 	  when(Jenkins.getInstance()).thenReturn(jenkins);
 	  when(Jenkins.get()).thenReturn(jenkins);

@@ -16,7 +16,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
+import java.io.IOException;
 import java.util.Set;
 
 /** Workflow step to send a Mattermost channel notification. */
@@ -98,7 +98,7 @@ public class MattermostSendStep extends Step
 	@Override
 	public StepExecution start(StepContext context)
 	{
-		return new MattermostSendStepExecution();
+		return new MattermostSendStepExecution(context, this);
 	}
 
   @Extension
@@ -127,15 +127,27 @@ public class MattermostSendStep extends Step
   }
 
   public static class MattermostSendStepExecution
-      extends AbstractSynchronousNonBlockingStepExecution<Void> {
+		  extends SynchronousNonBlockingStepExecution<Void>
+  {
 
 	  private static final long serialVersionUID = 1L;
 
-	  @Inject
 	  transient MattermostSendStep step;
 
-	  @StepContextParameter
 	  transient TaskListener listener;
+
+	  protected MattermostSendStepExecution(StepContext context, MattermostSendStep mattermostSendStep)
+	  {
+		  super(context);
+		  step = mattermostSendStep;
+		  try
+		  {//TODO WARN REFACTOR
+			  this.listener = this.getContext().get(TaskListener.class);
+		  } catch (IOException | InterruptedException e)
+		  {
+			  System.exit(-1);
+		  }
+	  }
 
 	  @Override
 	  protected Void run() throws Exception
@@ -147,7 +159,7 @@ public class MattermostSendStep extends Step
 		  // Jenkins.getInstance() may return null, no message sent in that case
 		  try
 		  {
-			  jenkins = Jenkins.getInstance();
+			  jenkins = Jenkins.get();
 		  } catch (NullPointerException ne)
 		  {
 			  listener.error(String.format("Mattermost notification failed with exception: %s", ne), ne);
