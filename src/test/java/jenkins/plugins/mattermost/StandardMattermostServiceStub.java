@@ -8,7 +8,6 @@ public class StandardMattermostServiceStub extends StandardMattermostService {
     super(host, roomId, icon);
   }
 
-  @Override
   public HttpClientStub getHttpClient() {
     return httpClientStub;
   }

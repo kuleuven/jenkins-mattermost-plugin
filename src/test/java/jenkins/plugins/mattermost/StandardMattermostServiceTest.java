@@ -1,21 +1,24 @@
 package jenkins.plugins.mattermost;
 
 import org.apache.http.HttpStatus;
+import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.Collections;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
 public class StandardMattermostServiceTest {
+	@Rule
+	public JenkinsRule jenkinsRule = new JenkinsRule();
 
   /**
    * Publish should generally not rethrow exceptions, or it will cause a build job to fail at end.
    */
   @Test
   public void publishWithBadHostShouldNotRethrowExceptions() {
-    StandardMattermostService service = new StandardMattermostService("foo", "#general", "");
+	  StandardMattermostService service = new StandardMattermostService("http://foo", "#general", "");
     service.setEndpoint("hostvaluethatwillcausepublishtofail");
     service.publish("message");
   }
@@ -23,14 +26,14 @@ public class StandardMattermostServiceTest {
   /** Use a valid host, but an invalid team domain */
   @Test
   public void invalidHostShouldFail() {
-    StandardMattermostService service = new StandardMattermostService("my", "#general", "");
+	  StandardMattermostService service = new StandardMattermostService("http://my", "#general", "");
     service.publish("message");
   }
 
   @Test
   public void publishToASingleRoomSendsASingleMessage() {
     StandardMattermostServiceStub service =
-        new StandardMattermostServiceStub("domain", "#room1", "");
+			new StandardMattermostServiceStub("http://endpoint", "#room1", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     service.setHttpClient(httpClientStub);
     service.publish("message");
@@ -40,7 +43,7 @@ public class StandardMattermostServiceTest {
   @Test
   public void publishToMultipleRoomsSendsAMessageToEveryRoom() {
     StandardMattermostServiceStub service =
-        new StandardMattermostServiceStub("domain", "#room1,#room2,#room3", "");
+			new StandardMattermostServiceStub("http://endpoint", "#room1,#room2,#room3", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     service.setHttpClient(httpClientStub);
     service.publish("message");
@@ -50,7 +53,7 @@ public class StandardMattermostServiceTest {
   @Test
   public void successfulPublishToASingleRoomReturnsTrue() {
     StandardMattermostServiceStub service =
-        new StandardMattermostServiceStub("domain", "#room1", "");
+			new StandardMattermostServiceStub("http://endpoint", "#room1", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);
@@ -60,7 +63,7 @@ public class StandardMattermostServiceTest {
   @Test
   public void successfulPublishToMultipleRoomsReturnsTrue() {
     StandardMattermostServiceStub service =
-        new StandardMattermostServiceStub("domain", "#room1,#room2,#room3", "");
+			new StandardMattermostServiceStub("http://endpoint", "#room1,#room2,#room3", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);
@@ -70,7 +73,7 @@ public class StandardMattermostServiceTest {
   @Test
   public void failedPublishToASingleRoomReturnsFalse() {
     StandardMattermostServiceStub service =
-        new StandardMattermostServiceStub("domain", "#room1", "");
+			new StandardMattermostServiceStub("http://endpoint", "#room1", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_NOT_FOUND);
     service.setHttpClient(httpClientStub);
@@ -80,7 +83,7 @@ public class StandardMattermostServiceTest {
   @Test
   public void singleFailedPublishToMultipleRoomsReturnsFalse() {
     StandardMattermostServiceStub service =
-        new StandardMattermostServiceStub("domain", "#room1,#room2,#room3", "");
+			new StandardMattermostServiceStub("http://endpoint", "#room1,#room2,#room3", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setFailAlternateResponses(true);
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
@@ -90,7 +93,7 @@ public class StandardMattermostServiceTest {
 
   @Test
   public void publishToEmptyRoomReturnsTrue() {
-    StandardMattermostServiceStub service = new StandardMattermostServiceStub("domain", "", "");
+	  StandardMattermostServiceStub service = new StandardMattermostServiceStub("http://endpoint", "", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);
@@ -101,7 +104,7 @@ public class StandardMattermostServiceTest {
   public void isProxyRequiredEmtyNoProxyHostsReturnsTrue() {
     StandardMattermostService service =
         new StandardMattermostService("http://mymattermost.endpoint.com", "roomid", "icon");
-    assertTrue(service.isProxyRequired(Collections.<Pattern>emptyList()));
+	  assertTrue(service.isProxyRequired(Collections.emptyList()));
   }
 
   @Test
@@ -123,7 +126,7 @@ public class StandardMattermostServiceTest {
   @Test
   public void isProxyRequiredInvalidEndPointReturnsTrue() {
     StandardMattermostService service =
-        new StandardMattermostService("htt://mymattermost.endpoint.com", "roomid", "icon");
+			new StandardMattermostService("http://mymattermost.endpoint.com", "roomid", "icon");
     assertTrue(
             service.isProxyRequired("*.internal.com"));
   }
