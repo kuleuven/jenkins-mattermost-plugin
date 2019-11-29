@@ -1,7 +1,5 @@
 package jenkins.plugins.mattermost;
 
-import static hudson.Util.fixNull;
-
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
@@ -17,11 +15,6 @@ import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
-import java.io.IOException;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.CheckForNull;
 import jenkins.model.Jenkins;
 import jenkins.model.JenkinsLocationConfiguration;
 import net.sf.json.JSONObject;
@@ -33,6 +26,14 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.verb.POST;
+
+import javax.annotation.CheckForNull;
+import java.io.IOException;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static hudson.Util.fixNull;
 
 public class MattermostNotifier extends Notifier {
 
@@ -298,9 +299,9 @@ public class MattermostNotifier extends Notifier {
   }
 
   public MattermostService newMattermostService(AbstractBuild r, BuildListener listener) {
-    String endpoint = Secret.toString(this.getEndpoint());
+	  String endpoint = this.getEndpoint().getPlainText();
     if (StringUtils.isEmpty(endpoint)) {
-      endpoint = Secret.toString(getDescriptor().getEndpoint());
+		endpoint = getDescriptor().getEndpoint().getPlainText();
     }
     String room = this.room;
     if (StringUtils.isEmpty(room)) {
@@ -457,7 +458,7 @@ public class MattermostNotifier extends Notifier {
       try {
         String targetEndpoint = endpoint;
         if (StringUtils.isEmpty(targetEndpoint)) {
-          targetEndpoint = Secret.toString(this.getEndpoint());
+			targetEndpoint = this.getEndpoint().getPlainText();
         }
         String targetRoom = room;
         if (StringUtils.isEmpty(targetRoom)) {
@@ -673,7 +674,8 @@ public class MattermostNotifier extends Notifier {
         } else {
           logger.info(String.format("Starting migration for \"%s\"", p.getName()));
           // map settings
-          if (StringUtils.isBlank(Secret.toString(mattermostNotifier.getEndpoint()))) {
+			if (StringUtils.isBlank(mattermostNotifier.getEndpoint().getPlainText()))
+			{
             mattermostNotifier.setEndpoint(mattermostJobProperty.getEndpoint());
           }
           if (StringUtils.isBlank(mattermostNotifier.icon)) {

@@ -32,14 +32,14 @@ public class StandardMattermostService implements MattermostService
 	private static final Logger logger = Logger.getLogger(StandardMattermostService.class.getName());
 
 	private String endpoint;
-	private String[] roomIds;
+	private String[] channelIds;
 	private String icon;
 
-	public StandardMattermostService(String endpoint, String roomId, String icon)
+	public StandardMattermostService(String endpoint, String channelId, String icon)
 	{
 		super();
 		this.endpoint = endpoint;
-		this.roomIds = roomId.split("[,;]+");
+		this.channelIds = channelId.split("[,;]+");
 		this.icon = icon;
 	}
 
@@ -113,7 +113,7 @@ public class StandardMattermostService implements MattermostService
 	public boolean publish(String message, String text, String color)
 	{
 		boolean result = true;
-		for (String userAndRoomId : roomIds)
+		for (String userAndRoomId : channelIds)
 		{
 			//String url = endpoint;
 			URL url = null;

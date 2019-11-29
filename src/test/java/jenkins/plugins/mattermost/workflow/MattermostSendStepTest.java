@@ -29,7 +29,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 /** Traditional Unit tests, allows testing null Jenkins,getInstance() */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Jenkins.class, ConfidentialStore.class, MattermostSendStep.class, HistoricalSecrets.class})
-@PowerMockIgnore({"javax.crypto.*"}) // https://github.com/powermock/powermock/issues/294
+@PowerMockIgnore({"javax.crypto.*", "javax.net.ssl.*"}) // https://github.com/powermock/powermock/issues/294
 public class MattermostSendStepTest {
 
   @Mock TaskListener taskListenerMock;
@@ -45,11 +45,12 @@ public class MattermostSendStepTest {
   @Before
   public void setUp() {
     PowerMockito.mockStatic(Jenkins.class);
-    when(jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class))
-        .thenReturn(mattermostDescMock);
+	  //when(jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class)) -> null ref
+	  when(jenkins.getDescriptor("mattermostNotifier")).thenReturn(mattermostDescMock);
 	  mattermostSendStep = new MattermostSendStep("message");
 	  stepExecution = spy(new MattermostSendStep.MattermostSendStepExecution(stepContextMock, mattermostSendStep));
 	  stepExecution.step = mattermostSendStep;
+
 	  when(Jenkins.getInstance()).thenReturn(jenkins);
 	  when(Jenkins.get()).thenReturn(jenkins);
   }
@@ -114,7 +115,16 @@ public class MattermostSendStepTest {
 
   @Test
   public void testNonNullEmptyColor() throws Exception {
+	  PowerMockito.mockStatic(ConfidentialStore.class);
+	  ConfidentialStore csMock = mock(ConfidentialStore.class);
+	  when(ConfidentialStore.get()).thenReturn(csMock);
+	  when(csMock.randomBytes(Matchers.anyInt()))
+			  .thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
+	  Secret encryptedEndpoint = Secret.fromString("globalEndpoint");
+	  when(mattermostDescMock.getEndpoint()).thenReturn(encryptedEndpoint);
     mattermostSendStep.setColor("");
+	  mattermostSendStep.setChannel("channel");
+	  mattermostSendStep.setIcon("");
 
     stepExecution.listener = taskListenerMock;
 
@@ -129,17 +139,25 @@ public class MattermostSendStepTest {
     assertNull(stepExecution.step.getColor());
   }
 
-  @Test
+	@Deprecated
   public void testNonNullPretext() throws Exception {
+		TestListener target = new TestListener(8080);
+		Thread thread = new Thread(target);
+		thread.start();
+		PowerMockito.mockStatic(ConfidentialStore.class);
+		ConfidentialStore csMock = mock(ConfidentialStore.class);
+		when(ConfidentialStore.get()).thenReturn(csMock);
+		when(csMock.randomBytes(Matchers.anyInt()))
+				.thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
+		Secret encryptedEndpoint = Secret.fromString("http://localhost:8080");
+		when(mattermostDescMock.getEndpoint()).thenReturn(encryptedEndpoint);
     mattermostSendStep.setText("@foo @bar");
-
+		mattermostSendStep.setChannel("channel");
     stepExecution.listener = taskListenerMock;
 
     when(taskListenerMock.getLogger()).thenReturn(printStreamMock);
     doNothing().when(printStreamMock).println();
 
-    when(stepExecution.getMattermostService(anyString(), anyString(), anyString()))
-        .thenReturn(mattermostServiceMock);
 
     stepExecution.run();
     verify(mattermostServiceMock, times(1)).publish("message", "@foo @bar", "");

@@ -1,6 +1,6 @@
 package jenkins.plugins.mattermost;
 
-import jenkins.plugins.mattermost.workflow.MattermostSendStepIntegrationTest;
+import jenkins.plugins.mattermost.workflow.TestListener;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class StandardMattermostServiceTest {
 	@Rule
 	public JenkinsRule jenkinsRule = new JenkinsRule();
-	private MattermostSendStepIntegrationTest.TestListener target;
+	private TestListener target;
 	private int port = 8088;
 
 	@Before
@@ -22,7 +22,7 @@ public class StandardMattermostServiceTest {
 	{
 		try
 		{
-			this.target = new MattermostSendStepIntegrationTest.TestListener(port);
+			this.target = new TestListener(port);
 			Thread thread = new Thread(target);
 			thread.start();
 		} catch (Exception ex)

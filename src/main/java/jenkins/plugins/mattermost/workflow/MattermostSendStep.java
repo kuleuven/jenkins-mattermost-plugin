@@ -6,7 +6,6 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import jenkins.plugins.mattermost.MattermostNotifier;
 import jenkins.plugins.mattermost.MattermostService;
@@ -164,13 +163,13 @@ public class MattermostSendStep extends Step
 		  {
 			  listener.error(String.format("Mattermost notification failed with exception: %s", ne), ne);
 			  return null;
-		  }
+		  }//TODO REFACTOR jenkins.getdescriptor by class
 		  MattermostNotifier.DescriptorImpl mattermostDesc =
-          jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
+				  (MattermostNotifier.DescriptorImpl) jenkins.getDescriptor("mattermostNotifier");
 		  String team =
           step.getEndpoint() != null
 				  ? step.getEndpoint()
-				  : Secret.toString(mattermostDesc.getEndpoint());
+				  : mattermostDesc.getEndpoint().getPlainText();
 		  String channel = step.channel != null ? step.channel : mattermostDesc.getRoom();
 		  String icon = step.icon != null ? step.icon : mattermostDesc.getIcon();
 		  String color = step.color != null ? step.color : "";
