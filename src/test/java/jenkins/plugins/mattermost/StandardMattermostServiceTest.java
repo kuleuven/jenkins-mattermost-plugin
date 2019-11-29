@@ -1,5 +1,6 @@
 package jenkins.plugins.mattermost;
 
+import jenkins.plugins.mattermost.workflow.MattermostSendStepIntegrationTest;
 import org.apache.http.HttpStatus;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +34,10 @@ public class StandardMattermostServiceTest {
   @Test
   public void publishToASingleRoomSendsASingleMessage() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://endpoint", "#room1", "");
+			new StandardMattermostServiceStub("http://localhost:8080", "#room1", "");
+	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
+	  Thread thread = new Thread(target);
+	  thread.start();
     HttpClientStub httpClientStub = new HttpClientStub();
     service.setHttpClient(httpClientStub);
     service.publish("message");
@@ -43,7 +47,10 @@ public class StandardMattermostServiceTest {
   @Test
   public void publishToMultipleRoomsSendsAMessageToEveryRoom() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://endpoint", "#room1,#room2,#room3", "");
+			new StandardMattermostServiceStub("http://localhost:8080", "#room1,#room2,#room3", "");
+	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
+	  Thread thread = new Thread(target);
+	  thread.start();
     HttpClientStub httpClientStub = new HttpClientStub();
     service.setHttpClient(httpClientStub);
     service.publish("message");
@@ -53,7 +60,10 @@ public class StandardMattermostServiceTest {
   @Test
   public void successfulPublishToASingleRoomReturnsTrue() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://endpoint", "#room1", "");
+			new StandardMattermostServiceStub("http://localhost:8080", "#room1", "");
+	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
+	  Thread thread = new Thread(target);
+	  thread.start();
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);
@@ -63,7 +73,10 @@ public class StandardMattermostServiceTest {
   @Test
   public void successfulPublishToMultipleRoomsReturnsTrue() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://endpoint", "#room1,#room2,#room3", "");
+			new StandardMattermostServiceStub("http://localhost:8080", "#room1,#room2,#room3", "");
+	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
+	  Thread thread = new Thread(target);
+	  thread.start();
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);
@@ -93,7 +106,10 @@ public class StandardMattermostServiceTest {
 
   @Test
   public void publishToEmptyRoomReturnsTrue() {
-	  StandardMattermostServiceStub service = new StandardMattermostServiceStub("http://endpoint", "", "");
+	  StandardMattermostServiceStub service = new StandardMattermostServiceStub("http://localhost:8080", "", "");
+	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
+	  Thread thread = new Thread(target);
+	  thread.start();
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);

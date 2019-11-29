@@ -115,7 +115,7 @@ public class MattermostSendStepIntegrationTest {
 		thread.stop();
 	}
 
-	private class TestListener implements Runnable
+	public static class TestListener implements Runnable
 	{
 		public BlockingArrayQueue<String> messages = new BlockingArrayQueue<>();
 
