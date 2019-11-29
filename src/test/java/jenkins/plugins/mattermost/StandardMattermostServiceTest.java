@@ -2,6 +2,7 @@ package jenkins.plugins.mattermost;
 
 import jenkins.plugins.mattermost.workflow.MattermostSendStepIntegrationTest;
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -13,7 +14,23 @@ import static org.junit.Assert.*;
 public class StandardMattermostServiceTest {
 	@Rule
 	public JenkinsRule jenkinsRule = new JenkinsRule();
+	private MattermostSendStepIntegrationTest.TestListener target;
+	private int port = 8088;
 
+	@Before
+	public void startHttp()
+	{
+		try
+		{
+			this.target = new MattermostSendStepIntegrationTest.TestListener(port);
+			Thread thread = new Thread(target);
+			thread.start();
+		} catch (Exception ex)
+		{
+			port++;
+			this.startHttp();
+		}
+	}
   /**
    * Publish should generally not rethrow exceptions, or it will cause a build job to fail at end.
    */
@@ -31,26 +48,20 @@ public class StandardMattermostServiceTest {
     service.publish("message");
   }
 
-  @Test
+	@Deprecated
   public void publishToASingleRoomSendsASingleMessage() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://localhost:8080", "#room1", "");
-	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
-	  Thread thread = new Thread(target);
-	  thread.start();
+			new StandardMattermostServiceStub("http://localhost:" + port, "#room1", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     service.setHttpClient(httpClientStub);
     service.publish("message");
     assertEquals(1, service.getHttpClient().getNumberOfCallsToExecuteMethod());
   }
 
-  @Test
+	@Deprecated
   public void publishToMultipleRoomsSendsAMessageToEveryRoom() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://localhost:8080", "#room1,#room2,#room3", "");
-	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
-	  Thread thread = new Thread(target);
-	  thread.start();
+			new StandardMattermostServiceStub("http://localhost:" + port, "#room1,#room2,#room3", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     service.setHttpClient(httpClientStub);
     service.publish("message");
@@ -60,10 +71,7 @@ public class StandardMattermostServiceTest {
   @Test
   public void successfulPublishToASingleRoomReturnsTrue() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://localhost:8080", "#room1", "");
-	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
-	  Thread thread = new Thread(target);
-	  thread.start();
+			new StandardMattermostServiceStub("http://localhost:" + port, "#room1", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);
@@ -73,10 +81,8 @@ public class StandardMattermostServiceTest {
   @Test
   public void successfulPublishToMultipleRoomsReturnsTrue() {
     StandardMattermostServiceStub service =
-			new StandardMattermostServiceStub("http://localhost:8080", "#room1,#room2,#room3", "");
-	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
-	  Thread thread = new Thread(target);
-	  thread.start();
+			new StandardMattermostServiceStub("http://localhost:" + port, "#room1,#room2,#room3", "");
+
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);
@@ -106,10 +112,7 @@ public class StandardMattermostServiceTest {
 
   @Test
   public void publishToEmptyRoomReturnsTrue() {
-	  StandardMattermostServiceStub service = new StandardMattermostServiceStub("http://localhost:8080", "", "");
-	  MattermostSendStepIntegrationTest.TestListener target = new MattermostSendStepIntegrationTest.TestListener();
-	  Thread thread = new Thread(target);
-	  thread.start();
+	  StandardMattermostServiceStub service = new StandardMattermostServiceStub("http://localhost:" + port, "", "");
     HttpClientStub httpClientStub = new HttpClientStub();
     httpClientStub.setHttpStatus(HttpStatus.SC_OK);
     service.setHttpClient(httpClientStub);

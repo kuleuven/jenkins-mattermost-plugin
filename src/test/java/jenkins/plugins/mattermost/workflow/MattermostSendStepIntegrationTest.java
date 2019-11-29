@@ -106,7 +106,7 @@ public class MattermostSendStepIntegrationTest {
 				new CpsFlowDefinition(
 						"mattermostSend(message: 'http tester', endpoint: 'http://127.0.0.1:8080/', icon: 'icon', channel: '#channel', color: 'good');",
 						true));
-		TestListener target = new TestListener();
+		TestListener target = new TestListener(8080);
 		Thread thread = new Thread(target);
 		thread.start();
 		WorkflowRun run = jenkinsRule.assertBuildStatusSuccess(job.scheduleBuild2(0).get());
@@ -117,7 +117,13 @@ public class MattermostSendStepIntegrationTest {
 
 	public static class TestListener implements Runnable
 	{
+		private final int port;
 		public BlockingArrayQueue<String> messages = new BlockingArrayQueue<>();
+
+		public TestListener(int port)
+		{
+			this.port = port;
+		}
 
 		@Override
 		public void run()
@@ -125,7 +131,7 @@ public class MattermostSendStepIntegrationTest {
 			HttpServer server = null;
 			try
 			{
-				server = HttpServer.create(new InetSocketAddress(8080), 0);
+				server = HttpServer.create(new InetSocketAddress(port), 0);
 			} catch (IOException e)
 			{
 				e.printStackTrace();
