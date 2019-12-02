@@ -94,9 +94,9 @@ public class MattermostSendStepIntegrationTest {
 		WorkflowJob job = jenkinsRule.jenkins.createProject(WorkflowJob.class, "workflow");
 		job.setDefinition(
 				new CpsFlowDefinition(
-						"mattermostSend(message: 'http tester', endpoint: 'http://127.0.0.1:8080/', icon: 'icon', channel: '#channel', color: 'good');",
+						"mattermostSend(message: 'test please ignore', endpoint: 'https://localhost:8080/hooks/9src4cpiatbz3qpbr76rxrwf7e', icon: 'icon', channel: '#jenkins', color: 'good');",
 						true));
-		TestListener target = new TestListener(8080);
+		TestListener target = new TestListener(8080, "/hooks/9src4cpiatbz3qpbr76rxrwf7e");
 		Thread thread = new Thread(target);
 		thread.start();
 		WorkflowRun run = jenkinsRule.assertBuildStatusSuccess(job.scheduleBuild2(0).get());

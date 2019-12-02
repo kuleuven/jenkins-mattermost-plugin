@@ -15,10 +15,17 @@ public class TestListener implements Runnable
 {
 	private final int port;
 	public BlockingArrayQueue<String> messages = new BlockingArrayQueue<>();
+	private String path = "/";
 
 	public TestListener(int port)
 	{
 		this.port = port;
+	}
+
+	public TestListener(int port, String path)
+	{
+		this.port = port;
+		this.path = path;
 	}
 
 	@Override
@@ -33,7 +40,8 @@ public class TestListener implements Runnable
 			e.printStackTrace();
 		}
 		assert server != null;
-		server.createContext("/", new MyHandler());
+
+		server.createContext(path, new MyHandler());
 		server.setExecutor(null); // creates a default executor
 		server.start();
 	}
