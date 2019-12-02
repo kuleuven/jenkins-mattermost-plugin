@@ -165,13 +165,13 @@ public class MattermostSendStep extends Step
 			  return null;
 		  }//TODO REFACTOR jenkins.getdescriptor by class
 		  MattermostNotifier.DescriptorImpl mattermostDesc =
-				  (MattermostNotifier.DescriptorImpl) jenkins.getDescriptor("mattermostNotifier");
+				  jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
 		  String team =
           step.getEndpoint() != null
 				  ? step.getEndpoint()
 				  : mattermostDesc.getEndpoint().getPlainText();
 		  String channel = step.channel != null ? step.channel : mattermostDesc.getRoom();
-		  String icon = step.icon != null ? step.icon : mattermostDesc.getIcon();
+		  String icon = step.icon != null ? step.icon : (mattermostDesc.getIcon() != null ? mattermostDesc.getIcon() : "");
 		  String color = step.color != null ? step.color : "";
 		  String text = step.text != null ? step.text : "";
 

@@ -7,20 +7,25 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.ssl.SSLContexts;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -123,10 +128,11 @@ public class StandardMattermostService implements MattermostService
 
 				String roomId = userAndRoomId.trim();
 				String userId = "jenkins";
-				HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());
+				HttpHost httpHost = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
 				ProxyConfiguration proxy = Jenkins.get().proxy;
 				HttpClientBuilder clientBuilder = HttpClients.custom();
 				RequestConfig.Builder reqconfigconbuilder = RequestConfig.custom();
+				clientBuilder.setSSLContext(SSLContexts.createDefault());
 				if (proxy != null && isProxyRequired(proxy.noProxyHost))
 				{//TODO CHECK PROXY URL
 					URL proxyURL = new URL(proxy.name + ":" + proxy.port);
@@ -175,18 +181,17 @@ public class StandardMattermostService implements MattermostService
 				RequestBuilder requestBuilder = RequestBuilder.post(url.toURI());
 				requestBuilder.setConfig(config);
 
-
 				JSONObject json = createPayload(message, text, color, roomId, userId, icon);
-
-				requestBuilder.addParameter("payload", json.toString());
+				logger.info("Playload: " + json.toString());
+				requestBuilder.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 				requestBuilder.setCharset(StandardCharsets.UTF_8);
 				CloseableHttpResponse execute = client.execute(httpHost, requestBuilder.build());
 				int responseCode = execute.getStatusLine().getStatusCode();
 				if (responseCode != HttpStatus.SC_OK)
 				{
-					Scanner sc = new Scanner(execute.getEntity().getContent());
-					String response = sc.toString();
-					logger.log(Level.WARNING, "Mattermost post may have failed. Response: " + response);
+					BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent(), Charset.defaultCharset()));
+					String collect = bufferedReader.lines().collect(Collectors.joining(" "));
+					logger.log(Level.WARNING, "Mattermost post may have failed. Response" + responseCode + ": " + collect);
 					result = false;
 				}
 			} catch (Exception e)

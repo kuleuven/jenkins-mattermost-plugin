@@ -180,6 +180,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <trimStackTrace>false</trimStackTrace>
+              <!--              <debugForkedProcess>true</debugForkedProcess>-->
             </configuration>
           </plugin>
           <plugin>
