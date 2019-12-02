@@ -52,6 +52,13 @@
         <artifactId>httpclient</artifactId>
         <version>4.5.10</version>
       </dependency>
+      <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk15on</artifactId>
+        <version>1.64</version>
+        <scope>test</scope>
+      </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>log4j-over-slf4j</artifactId>

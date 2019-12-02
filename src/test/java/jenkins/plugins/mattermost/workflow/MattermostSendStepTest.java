@@ -29,7 +29,8 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 /** Traditional Unit tests, allows testing null Jenkins,getInstance() */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Jenkins.class, ConfidentialStore.class, MattermostSendStep.class, HistoricalSecrets.class})
-@PowerMockIgnore({"javax.crypto.*", "javax.net.ssl.*"}) // https://github.com/powermock/powermock/issues/294
+@PowerMockIgnore({"javax.crypto.*", "javax.net.ssl.*", "jenkins.plugins.mattermost.workflow.TestListener"
+		, "java.security.*", "org.bouncycastle"}) // https://github.com/powermock/powermock/issues/294
 public class MattermostSendStepTest {
 
   @Mock TaskListener taskListenerMock;
@@ -82,14 +83,14 @@ public class MattermostSendStepTest {
   @Test
   public void testValuesForGlobalConfig() throws Exception {
 
-
     stepExecution.listener = taskListenerMock;
-
-    PowerMockito.mockStatic(ConfidentialStore.class);
-    ConfidentialStore csMock = mock(ConfidentialStore.class);
-    when(ConfidentialStore.get()).thenReturn(csMock);
-    when(csMock.randomBytes(Matchers.anyInt()))
-        .thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
+	  Jenkins mock = mock(Jenkins.class);
+	  when(Jenkins.getInstanceOrNull()).thenReturn(mock);
+	  PowerMockito.mockStatic(ConfidentialStore.class);
+	  ConfidentialStore csMock = mock(ConfidentialStore.class);
+	  when(ConfidentialStore.get()).thenReturn(csMock);
+	  when(csMock.randomBytes(Matchers.anyInt()))
+			  .thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
 
     Secret encryptedEndpoint = Secret.fromString("globalEndpoint");
     when(mattermostDescMock.getEndpoint()).thenReturn(encryptedEndpoint);
@@ -115,6 +116,8 @@ public class MattermostSendStepTest {
 
   @Test
   public void testNonNullEmptyColor() throws Exception {
+	  Jenkins mock = mock(Jenkins.class);
+	  when(Jenkins.getInstanceOrNull()).thenReturn(mock);
 	  PowerMockito.mockStatic(ConfidentialStore.class);
 	  ConfidentialStore csMock = mock(ConfidentialStore.class);
 	  when(ConfidentialStore.get()).thenReturn(csMock);
@@ -139,7 +142,7 @@ public class MattermostSendStepTest {
     assertNull(stepExecution.step.getColor());
   }
 
-	@Deprecated
+	@Test
   public void testNonNullPretext() throws Exception {
 		TestListener target = new TestListener(8080);
 		Thread thread = new Thread(target);
@@ -154,6 +157,9 @@ public class MattermostSendStepTest {
     mattermostSendStep.setText("@foo @bar");
 		mattermostSendStep.setChannel("channel");
     stepExecution.listener = taskListenerMock;
+
+		when(stepExecution.getMattermostService(anyString(), anyString(), anyString()))
+				.thenReturn(mattermostServiceMock);
 
     when(taskListenerMock.getLogger()).thenReturn(printStreamMock);
     doNothing().when(printStreamMock).println();
