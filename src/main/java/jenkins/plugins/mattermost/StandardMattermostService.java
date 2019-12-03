@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -37,8 +38,8 @@ public class StandardMattermostService implements MattermostService
 	private static final Logger logger = Logger.getLogger(StandardMattermostService.class.getName());
 
 	private String endpoint;
-	private String[] channelIds;
-	private String icon;
+	private final String[] channelIds;
+	private final String icon;
 
 	public StandardMattermostService(String endpoint, String channelId, String icon)
 	{
@@ -79,30 +80,30 @@ public class StandardMattermostService implements MattermostService
 
 	public static String createRegexFromGlob(String glob)
 	{
-		String out = "^";
+		StringBuilder out = new StringBuilder("^");
 		for (int i = 0; i < glob.length(); ++i)
 		{
 			final char c = glob.charAt(i);
 			switch (c)
 			{
 				case '*':
-					out += ".*";
+					out.append(".*");
 					break;
 				case '?':
-					out += '.';
+					out.append('.');
 					break;
 				case '.':
-					out += "\\.";
+					out.append("\\.");
 					break;
 				case '\\':
-					out += "\\\\";
+					out.append("\\\\");
 					break;
 				default:
-					out += c;
+					out.append(c);
 			}
 		}
-		out += '$';
-		return out;
+		out.append('$');
+		return out.toString();
 	}
 
 	public boolean publish(String message)
@@ -121,43 +122,30 @@ public class StandardMattermostService implements MattermostService
 		for (String userAndRoomId : channelIds)
 		{
 			//String url = endpoint;
-			URL url = null;
+			URL url;
 			try
 			{
-				url = new URL(this.endpoint);
 
 				String roomId = userAndRoomId.trim();
 				String userId = "jenkins";
+				url = new URL(this.endpoint);
 				HttpHost httpHost = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
 				ProxyConfiguration proxy = Jenkins.get().proxy;
 				HttpClientBuilder clientBuilder = HttpClients.custom();
-				RequestConfig.Builder reqconfigconbuilder = RequestConfig.custom();
 				clientBuilder.setSSLContext(SSLContexts.createDefault());
+				RequestConfig.Builder reqconfigconbuilder = RequestConfig.custom();
+				reqconfigconbuilder.setConnectTimeout(10000);
+				reqconfigconbuilder.setSocketTimeout(10000);
 				if (proxy != null && isProxyRequired(proxy.noProxyHost))
-				{//TODO CHECK PROXY URL
-					URL proxyURL = new URL(proxy.name + ":" + proxy.port);
-					HttpHost proxyHost = new HttpHost(proxyURL.getHost(), proxyURL.getPort());
-					DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxyHost);
-					clientBuilder.setRoutePlanner(routePlanner);
-					reqconfigconbuilder = reqconfigconbuilder.setProxy(proxyHost);
-
-					String username = proxy.getUserName();
-					String password = proxy.getPassword();
-					// Consider it to be passed if username specified. Sufficient?
-					if (username != null && !username.isEmpty())
-					{
-						logger.info("Using proxy authentication (user=" + username + ")");
-						BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
-						basicCredentialsProvider.setCredentials(
-								new org.apache.http.auth.AuthScope(proxyHost.getHostName(), proxy.port),
-								new org.apache.http.auth.UsernamePasswordCredentials(username, password));
-
-						clientBuilder.setDefaultCredentialsProvider(basicCredentialsProvider);
-					}
+				{
+					reqconfigconbuilder = setupProxy(url, proxy, clientBuilder, reqconfigconbuilder);
 				}
 
 				RequestConfig config = reqconfigconbuilder.build();
 				CloseableHttpClient client = clientBuilder.build();
+				RequestBuilder requestBuilder = RequestBuilder.post(url.toURI());
+				requestBuilder.setConfig(config);
+				requestBuilder.setCharset(StandardCharsets.UTF_8);
 
 				// Supported channel string formats:
 				// - user@channel
@@ -177,23 +165,18 @@ public class StandardMattermostService implements MattermostService
 					roomIdString = "(default)";
 				}
 
-				logger.info("Posting: to " + roomIdString + "@" + url + ": " + message + " (" + color + ")");
-				RequestBuilder requestBuilder = RequestBuilder.post(url.toURI());
-				requestBuilder.setConfig(config);
 
 				JSONObject json = createPayload(message, text, color, roomId, userId, icon);
 				logger.info("Playload: " + json.toString());
 				requestBuilder.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
-				requestBuilder.setCharset(StandardCharsets.UTF_8);
 				CloseableHttpResponse execute = client.execute(httpHost, requestBuilder.build());
 				int responseCode = execute.getStatusLine().getStatusCode();
 				if (responseCode != HttpStatus.SC_OK)
 				{
-					BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent(), Charset.defaultCharset()));
-					String collect = bufferedReader.lines().collect(Collectors.joining(" "));
-					logger.log(Level.WARNING, "Mattermost post may have failed. Response" + responseCode + ": " + collect);
 					result = false;
-				}
+					logHttpErrorStatus(execute, responseCode);
+				} else
+					logger.info("Status " + responseCode + ": to " + roomIdString + "@" + url + ": " + message + " (" + color + ")");
 			} catch (Exception e)
 			{
 				logger.log(Level.WARNING, "Error posting to Mattermost", e);
@@ -201,6 +184,43 @@ public class StandardMattermostService implements MattermostService
 			}
 		}
 		return result;
+	}
+
+	private void logHttpErrorStatus(CloseableHttpResponse execute, int responseCode) throws IOException
+	{
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent(), Charset.defaultCharset()));
+		String collect = bufferedReader.lines().collect(Collectors.joining(" "));
+		logger.log(Level.WARNING, "Mattermost post may have failed. Response" + responseCode + ": " + collect);
+
+	}
+
+	private RequestConfig.Builder setupProxy(URL url, ProxyConfiguration proxy, HttpClientBuilder clientBuilder, RequestConfig.Builder reqconfigconbuilder) throws MalformedURLException
+	{
+		URL proxyURL = new URL(proxy.name + ":" + proxy.port);
+		HttpHost proxyHost = new HttpHost(proxyURL.getHost(), proxyURL.getPort(), url.getProtocol());
+		DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxyHost);
+		clientBuilder.setRoutePlanner(routePlanner);
+		reqconfigconbuilder = reqconfigconbuilder.setProxy(proxyHost);
+
+		setupProxyAuth(proxy, clientBuilder, proxyHost);
+		return reqconfigconbuilder;
+	}
+
+	private void setupProxyAuth(ProxyConfiguration proxy, HttpClientBuilder clientBuilder, HttpHost proxyHost)
+	{
+		String username = proxy.getUserName();
+		String password = proxy.getPassword();
+		// Consider it to be passed if username specified. Sufficient?
+		if (username != null && !username.isEmpty())
+		{
+			logger.info("Using proxy authentication (user=" + username + ")");
+			BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
+			basicCredentialsProvider.setCredentials(
+					new org.apache.http.auth.AuthScope(proxyHost.getHostName(), proxy.port),
+					new org.apache.http.auth.UsernamePasswordCredentials(username, password));
+
+			clientBuilder.setDefaultCredentialsProvider(basicCredentialsProvider);
+		}
 	}
 
 	protected boolean isProxyRequired(List<Pattern> noProxyHosts)

@@ -166,6 +166,8 @@ public class MattermostSendStep extends Step
 		  }//TODO REFACTOR jenkins.getdescriptor by class
 		  MattermostNotifier.DescriptorImpl mattermostDesc =
 				  jenkins.getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
+		  if (mattermostDesc == null)
+			  mattermostDesc = (MattermostNotifier.DescriptorImpl) jenkins.getDescriptor("mattermostNotifier");//junit test fallback
 		  String team =
           step.getEndpoint() != null
 				  ? step.getEndpoint()

@@ -452,7 +452,8 @@ public class MattermostNotifier extends Notifier {
         @QueryParameter("icon") final String icon,
         @QueryParameter("buildServerUrl") final String buildServerUrl)
         throws FormException {
-      if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER))
+      {
         return FormValidation.error("Insufficient permission.");
       }
       try {

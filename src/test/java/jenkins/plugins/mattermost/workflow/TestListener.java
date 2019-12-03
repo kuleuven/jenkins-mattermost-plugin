@@ -9,11 +9,12 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class TestListener implements Runnable
 {
-	private final int port;
+	public final int port;
 	public BlockingArrayQueue<String> messages = new BlockingArrayQueue<>();
 	private String path = "/";
 
@@ -26,6 +27,13 @@ public class TestListener implements Runnable
 	{
 		this.port = port;
 		this.path = path;
+	}
+
+	public static TestListener create(String path)
+	{
+		Random random = new Random();
+		int port = (Math.abs(random.nextInt()) + 1024) % 65535;
+		return new TestListener(port, path);
 	}
 
 	@Override

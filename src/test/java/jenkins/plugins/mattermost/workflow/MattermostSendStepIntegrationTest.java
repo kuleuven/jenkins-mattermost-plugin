@@ -3,6 +3,7 @@ package jenkins.plugins.mattermost.workflow;
 
 import hudson.model.Result;
 import hudson.model.queue.QueueTaskFuture;
+import org.apache.commons.net.ntp.TimeStamp;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -73,37 +74,35 @@ public class MattermostSendStepIntegrationTest {
   }
 
 
-	public void testJenkinsWorkflow() throws Exception
-	{
-		WorkflowJob project = jenkinsRule.createProject(WorkflowJob.class);
-		project.setDefinition(new CpsFlowDefinition(
-				"node {" +
-						"  writeFile text: 'hello', file: 'greeting.txt'" +
-						"}", true));
-
-		WorkflowRun r = project.scheduleBuild2(0).getStartCondition().get();
-		while (true)
-		{
-			System.out.print(".");
-		}
-		//jenkinsRule.assertBuildStatusSuccess(r);
-	}
-
-
 	@Test
 	public void testHttpPost() throws Exception
 	{
 		WorkflowJob job = jenkinsRule.jenkins.createProject(WorkflowJob.class, "workflow");
+		TestListener target = TestListener.create("/hooks/9src4cpiatbz3qpbr76rxrwf7");
 		job.setDefinition(
 				new CpsFlowDefinition(
-						"mattermostSend(message: 'test please ignore', endpoint: 'http://localhost:8088/hooks/9src4cpiatbz3qpbr76rxrwf7e', icon: 'icon', channel: '#jenkins', color: 'good');",
+						"mattermostSend(message: 'test please ignore', endpoint: 'http://localhost:" + target.port + "/hooks/9src4cpiatbz3qpbr76rxrwf7', icon: 'icon', channel: '#jenkins', color: 'good');",
 						true));
-		TestListener target = new TestListener(8088, "/hooks/9src4cpiatbz3qpbr76rxrwf7e");
+
 		Thread thread = new Thread(target);
 		thread.start();
 		WorkflowRun run = jenkinsRule.assertBuildStatusSuccess(job.scheduleBuild2(0).get());
-		String poll = target.messages.poll(60, TimeUnit.SECONDS);
+		String poll = target.messages.poll(10, TimeUnit.SECONDS);
 		Assert.assertTrue(poll.contains("test"));
+	}
+
+	@Test
+	public void testTimeoutPost() throws Exception
+	{
+		WorkflowJob job = jenkinsRule.jenkins.createProject(WorkflowJob.class, "workflow");
+		job.setDefinition(
+				new CpsFlowDefinition(
+						"mattermostSend(message: 'test please ignore', endpoint: 'https://localhost:9999/', icon: 'icon', channel: '#jenkins', color: 'good');",
+						true));
+		TimeStamp start = TimeStamp.getCurrentTime();
+		WorkflowRun run = jenkinsRule.assertBuildStatusSuccess(job.scheduleBuild2(0).get());
+		TimeStamp stop = TimeStamp.getCurrentTime();
+		Assert.assertTrue(stop.getSeconds() - start.getSeconds() < 30);
 	}
 
 }
