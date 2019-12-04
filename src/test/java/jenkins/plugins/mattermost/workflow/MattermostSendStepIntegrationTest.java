@@ -3,6 +3,9 @@ package jenkins.plugins.mattermost.workflow;
 
 import hudson.model.Result;
 import hudson.model.queue.QueueTaskFuture;
+import javaposse.jobdsl.dsl.DslScriptLoader;
+import javaposse.jobdsl.dsl.GeneratedJob;
+import javaposse.jobdsl.plugin.JenkinsJobManagement;
 import org.apache.commons.net.ntp.TimeStamp;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -13,6 +16,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class MattermostSendStepIntegrationTest {
@@ -55,10 +61,10 @@ public class MattermostSendStepIntegrationTest {
   public void test_fail_on_error() throws Exception {
     WorkflowJob job = jenkinsRule.jenkins.createProject(WorkflowJob.class, "workflow");
     // just define message
-    job.setDefinition(
-        new CpsFlowDefinition(
-            "mattermostSend(message: 'message', endpoint: 'endpoint', icon: 'icon', channel: '#channel', color: 'good', failOnError: true);",
-            true));
+	  job.setDefinition(
+			  new CpsFlowDefinition(
+					  "mattermostSend(message: 'message', endpoint: 'endpoint', icon: 'icon', channel: '#channel', color: 'good', failOnError: true);",
+					  true));
 	  //noinspection ConstantConditions
 	  //job.scheduleBuild(0,new Cause.UserIdCause());
 	  QueueTaskFuture<WorkflowRun> workflowRunQueueTaskFuture = job.scheduleBuild2(0);
@@ -66,9 +72,9 @@ public class MattermostSendStepIntegrationTest {
 	  //workflowRun.getExecutionPromise().get();
 	  WorkflowRun run = jenkinsRule.assertBuildStatus(Result.FAILURE, workflowRunQueueTaskFuture);
 	  //jenkinsRule.assertBuildStatusSuccess(workflowRun);
-    // everything should come from step configuration
-	  String log = JenkinsRule.getLog(run);
-	  Assert.assertTrue(log.contains("Warn"));
+	  // everything should come from step configuration
+//	  String log = JenkinsRule.getLog(run);
+//	  Assert.assertTrue(log.contains("Warn"));
 	  //TODO jenkinsRule.assertLogContains(
 	  //   "Mattermost notification failed. See Jenkins logs for details.", run);
   }
@@ -103,6 +109,42 @@ public class MattermostSendStepIntegrationTest {
 		WorkflowRun run = jenkinsRule.assertBuildStatusSuccess(job.scheduleBuild2(0).get());
 		TimeStamp stop = TimeStamp.getCurrentTime();
 		Assert.assertTrue(stop.getSeconds() - start.getSeconds() < 30);
+	}
+
+	@Test
+	public void testDSLJob() throws Exception
+	{
+		TestListener testListener = TestListener.create("/");
+		Thread thread = new Thread(testListener);
+		thread.start();
+		JenkinsJobManagement jobManagement = new JenkinsJobManagement(System.out, Collections.emptyMap(), new File("."));
+		DslScriptLoader dslScriptLoader = new DslScriptLoader(jobManagement);
+		Set<GeneratedJob> jobs = dslScriptLoader.runScript("job('my-mattermost-job') {\n" +
+				"    description(\"Testing the new Mattermost plugin\")\n" +
+				"\n" +
+				"    publishers {\n" +
+				"        mattermostNotifier {\n" +
+				"            endpoint('http://localhost:" + testListener.port + "')\n" +
+				"            buildServerUrl('https://jenkins.mycompany.com/')\n" +
+				"            room('#mattermost')\n" +
+				"            startNotification(true)\n" +
+				"            notifyAborted(true)\n" +
+				"            notifyFailure(true)\n" +
+				"            notifyNotBuilt(true)\n" +
+				"            notifySuccess(true)\n" +
+				"            notifyUnstable(true)\n" +
+				"            notifyBackToNormal(true)\n" +
+				"            notifyRepeatedFailure(true)\n" +
+				"            includeTestSummary(true)\n" +
+				"            includeCustomMessage(true)\n" +
+				"        }\n" +
+				"    }\n" +
+				"}").getJobs();
+
+//		TopLevelItem item = jenkinsRule.jenkins.getItem("my-mattermost-job");
+		jenkinsRule.jenkins.getProjects().get(0).scheduleBuild2(0).get();
+		String poll = testListener.messages.poll(10, TimeUnit.SECONDS);
+		Assert.assertTrue(poll != null);
 	}
 
 }

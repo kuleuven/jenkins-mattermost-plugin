@@ -233,28 +233,56 @@ public class MattermostNotifier extends Notifier {
   }
 
   @DataBoundSetter
-  public void setIncludeCustomMessage(boolean includeCustomMessage) {
+  public void setIncludeCustomMessage(boolean includeCustomMessage)
+  {
     this.includeCustomMessage = includeCustomMessage;
   }
 
   @DataBoundSetter
-  public void setCustomMessage(@CheckForNull String customMessage) {
+  public void setCustomMessage(@CheckForNull String customMessage)
+  {
     this.customMessage = fixNull(customMessage);
   }
 
+//  @DataBoundConstructor
+//  public MattermostNotifier(
+//          final String endpoint,
+//          final String room,
+//          final String icon,
+//          final String buildServerUrl,
+//          final String sendAs,
+//          final boolean startNotification,
+//          final boolean notifyAborted,
+//          final boolean notifyFailure,
+//          final boolean notifyNotBuilt,
+//          final boolean notifySuccess,
+//          final boolean notifyUnstable,
+//          final boolean notifyBackToNormal,
+//          final boolean notifyRepeatedFailure,
+//          final boolean includeTestSummary,
+//          CommitInfoChoice commitInfoChoice,
+//          boolean includeCustomAttachmentMessage,
+//          String customAttachmentMessage,
+//          final boolean includeCustomMessage,
+//          final String customMessage){
+//    this(Secret.fromString(endpoint),room,icon,buildServerUrl,sendAs,startNotification,notifyAborted
+//            ,notifyFailure,notifyNotBuilt,notifySuccess,notifyUnstable,notifyBackToNormal,notifyRepeatedFailure,includeTestSummary,commitInfoChoice
+//    ,includeCustomAttachmentMessage,customAttachmentMessage,includeCustomMessage,customMessage);
+//  }
+
   @DataBoundConstructor
   public MattermostNotifier(
-      final Secret endpoint,
-      final String room,
-      final String icon,
-      final String buildServerUrl,
-      final String sendAs,
-      final boolean startNotification,
-      final boolean notifyAborted,
-      final boolean notifyFailure,
-      final boolean notifyNotBuilt,
-      final boolean notifySuccess,
-      final boolean notifyUnstable,
+          final String endpoint,
+          final String room,
+          final String icon,
+          final String buildServerUrl,
+          final String sendAs,
+          final boolean startNotification,
+          final boolean notifyAborted,
+          final boolean notifyFailure,
+          final boolean notifyNotBuilt,
+          final boolean notifySuccess,
+          final boolean notifyUnstable,
       final boolean notifyBackToNormal,
       final boolean notifyRepeatedFailure,
       final boolean includeTestSummary,
@@ -264,7 +292,7 @@ public class MattermostNotifier extends Notifier {
       final boolean includeCustomMessage,
       final String customMessage) {
     super();
-    this.endpoint = endpoint;
+    this.endpoint = Secret.fromString(endpoint);
     this.buildServerUrl = buildServerUrl;
     this.room = room;
     this.icon = icon;
@@ -361,6 +389,7 @@ public class MattermostNotifier extends Notifier {
       load();
     }
 
+    @DataBoundSetter
     public void setEndpoint(String endpoint) {
       if (endpoint == null) {
         this.endpoint = null;
