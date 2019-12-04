@@ -68,7 +68,7 @@ public class MattermostSendStepIntegrationTest {
 	  //jenkinsRule.assertBuildStatusSuccess(workflowRun);
     // everything should come from step configuration
 	  String log = JenkinsRule.getLog(run);
-	  Assert.assertTrue(log.contains("Mattermost notification failed. See Jenkins logs for details."));
+	  Assert.assertTrue(log.contains("Warn"));
 	  //TODO jenkinsRule.assertLogContains(
 	  //   "Mattermost notification failed. See Jenkins logs for details.", run);
   }

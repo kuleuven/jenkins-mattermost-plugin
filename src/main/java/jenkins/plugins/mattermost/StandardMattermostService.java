@@ -176,9 +176,9 @@ public class StandardMattermostService implements MattermostService
 				if (responseCode != HttpStatus.SC_OK)
 				{
 					result = false;
-					logHttpErrorStatus(execute, responseCode);
+					logHttpErrorStatus(execute, responseCode, roomIdString, url);
 				} else
-					logger.info("Status " + responseCode + ": to " + roomIdString + "@" + url + ": " + message + " (" + color + ")");
+					logger.info("Status " + responseCode + ": to " + roomIdString + "@" + url.getHost() + "/***: " + message + " (" + color + ")");
 			} catch (Exception e)
 			{
 				logger.log(Level.WARNING, "Error posting to Mattermost", e);
@@ -188,11 +188,11 @@ public class StandardMattermostService implements MattermostService
 		return result;
 	}
 
-	private void logHttpErrorStatus(CloseableHttpResponse execute, int responseCode) throws IOException
+	private void logHttpErrorStatus(CloseableHttpResponse execute, int responseCode, String roomIdString, URL hosturl) throws IOException
 	{
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent(), Charset.defaultCharset()));
 		String collect = bufferedReader.lines().collect(Collectors.joining(" "));
-		logger.log(Level.WARNING, "Mattermost post may have failed. Response" + responseCode + ": " + collect);
+		logger.log(Level.WARNING, "WARN Status " + responseCode + ": to " + roomIdString + "@" + hosturl.getHost() + ": " + collect);
 
 	}
 
