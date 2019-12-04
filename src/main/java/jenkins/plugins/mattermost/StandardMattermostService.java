@@ -27,6 +27,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -130,15 +131,16 @@ public class StandardMattermostService implements MattermostService
 				String userId = "jenkins";
 				url = new URL(this.endpoint);
 				HttpHost httpHost = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
-				ProxyConfiguration proxy = Jenkins.get().proxy;
 				HttpClientBuilder clientBuilder = HttpClients.custom();
 				clientBuilder.setSSLContext(SSLContexts.createDefault());
 				RequestConfig.Builder reqconfigconbuilder = RequestConfig.custom();
 				reqconfigconbuilder.setConnectTimeout(10000);
 				reqconfigconbuilder.setSocketTimeout(10000);
+
+				ProxyConfiguration proxy = Jenkins.get().proxy;
 				if (proxy != null && isProxyRequired(proxy.noProxyHost))
 				{
-					reqconfigconbuilder = setupProxy(url, proxy, clientBuilder, reqconfigconbuilder);
+					setupProxy(proxy, clientBuilder, reqconfigconbuilder);
 				}
 
 				RequestConfig config = reqconfigconbuilder.build();
@@ -194,13 +196,12 @@ public class StandardMattermostService implements MattermostService
 
 	}
 
-	private RequestConfig.Builder setupProxy(URL url, ProxyConfiguration proxy, HttpClientBuilder clientBuilder, RequestConfig.Builder reqconfigconbuilder) throws MalformedURLException
+	private RequestConfig.Builder setupProxy(ProxyConfiguration proxy, HttpClientBuilder clientBuilder, RequestConfig.Builder reqconfigconbuilder) throws MalformedURLException
 	{
-		URL proxyURL = new URL(proxy.name + ":" + proxy.port);
-		HttpHost proxyHost = new HttpHost(proxyURL.getHost(), proxyURL.getPort(), url.getProtocol());
+		HttpHost proxyHost = new HttpHost(proxy.name, proxy.port);
 		DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxyHost);
 		clientBuilder.setRoutePlanner(routePlanner);
-		reqconfigconbuilder = reqconfigconbuilder.setProxy(proxyHost);
+		reqconfigconbuilder.setProxy(proxyHost);
 
 		setupProxyAuth(proxy, clientBuilder, proxyHost);
 		return reqconfigconbuilder;
@@ -245,8 +246,11 @@ public class StandardMattermostService implements MattermostService
 
 	protected boolean isProxyRequired(String... noProxyHost)
 	{//
+		if (noProxyHost == null)
+			return false;
 		List<String> lst = Arrays.asList(noProxyHost);
 		List<Pattern> collect = lst.stream()
+				.filter(Objects::nonNull)
 				.map(StandardMattermostService::createRegexFromGlob)
 				.map(Pattern::compile)
 				.collect(Collectors.toList());
