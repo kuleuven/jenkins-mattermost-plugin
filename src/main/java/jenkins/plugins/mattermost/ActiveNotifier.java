@@ -419,7 +419,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 //      long backToNormalDuration = buildEndTime - previousSuccessEndTime;
 		//TODO CHANGED
 		long currentBuildStartTime = build.getTimeInMillis();
-		long lastSuccessBuildStartTime = build.getPreviousSuccessfulBuild().getTimeInMillis();
+		long lastSuccessBuildStartTime = previousSuccessfulBuild.getTimeInMillis();
 		long diff = currentBuildStartTime - lastSuccessBuildStartTime;
 		return Util.getTimeSpanString(diff);
     }

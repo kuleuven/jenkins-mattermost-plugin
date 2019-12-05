@@ -1,6 +1,7 @@
 package jenkins.plugins.mattermost.workflow;
 
 import com.google.common.collect.ImmutableSet;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.Util;
@@ -135,16 +136,18 @@ public class MattermostSendStep extends Step
 
 	  transient TaskListener listener;
 
+    @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
+
 	  protected MattermostSendStepExecution(StepContext context, MattermostSendStep mattermostSendStep)
 	  {
 		  super(context);
 		  step = mattermostSendStep;
 		  try
-		  {//TODO WARN REFACTOR
+		  {
 			  this.listener = this.getContext().get(TaskListener.class);
 		  } catch (IOException | InterruptedException e)
 		  {
-			  System.exit(-1);
+        //TODO WARN REFACTOR
 		  }
 	  }
 

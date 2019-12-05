@@ -179,7 +179,7 @@ public class StandardMattermostService implements MattermostService
 					logHttpErrorStatus(execute, responseCode, roomIdString, url);
 				} else
 					logger.info("Status " + responseCode + ": to " + roomIdString + "@" + url.getHost() + "/***: " + message + " (" + color + ")");
-			} catch (Exception e)
+      } catch(java.net.URISyntaxException | java.io.IOException e)
 			{
 				logger.log(Level.WARNING, "Error posting to Mattermost", e);
 				result = false;
@@ -191,9 +191,12 @@ public class StandardMattermostService implements MattermostService
 	private void logHttpErrorStatus(CloseableHttpResponse execute, int responseCode, String roomIdString, URL hosturl) throws IOException
 	{
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent(), Charset.defaultCharset()));
-		String collect = bufferedReader.lines().collect(Collectors.joining(" "));
-		logger.log(Level.WARNING, "WARN Status " + responseCode + ": to " + roomIdString + "@" + hosturl.getHost() + ": " + collect);
-
+    try {
+      String collect = bufferedReader.lines().collect(Collectors.joining(" "));
+      logger.log(Level.WARNING, "WARN Status " + responseCode + ": to " + roomIdString + "@" + hosturl.getHost() + ": " + collect);
+    } finally {
+      bufferedReader.close();
+    }
 	}
 
 	private RequestConfig.Builder setupProxy(ProxyConfiguration proxy, HttpClientBuilder clientBuilder, RequestConfig.Builder reqconfigconbuilder) throws MalformedURLException
