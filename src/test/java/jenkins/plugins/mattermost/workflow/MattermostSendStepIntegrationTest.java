@@ -84,10 +84,10 @@ public class MattermostSendStepIntegrationTest {
 	public void testHttpPost() throws Exception
 	{
 		WorkflowJob job = jenkinsRule.jenkins.createProject(WorkflowJob.class, "workflow");
-		TestListener target = TestListener.create("/hooks/9src4cpiatbz3qpbr76rxrwf7");
+		TestListener target = TestListener.create("/hooks/obvious-random-token");
 		job.setDefinition(
 				new CpsFlowDefinition(
-						"mattermostSend(message: 'test please ignore', endpoint: 'http://localhost:" + target.port + "/hooks/9src4cpiatbz3qpbr76rxrwf7', icon: 'icon', channel: '#jenkins', color: 'good');",
+						"mattermostSend(message: 'test please ignore', endpoint: 'http://localhost:" + target.port + "/hooks/obvious-random-token', icon: 'icon', channel: '#jenkins', color: 'good');",
 						true));
 
 		Thread thread = new Thread(target);
