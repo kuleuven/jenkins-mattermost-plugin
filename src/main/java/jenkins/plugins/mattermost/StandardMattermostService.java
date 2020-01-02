@@ -138,7 +138,7 @@ public class StandardMattermostService implements MattermostService
 				reqconfigconbuilder.setSocketTimeout(10000);
 
 				ProxyConfiguration proxy = Jenkins.get().proxy;
-				if (proxy != null && isProxyRequired(proxy.noProxyHost))
+				if (proxy != null && isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns(proxy.noProxyHost)))
 				{
 					setupProxy(proxy, clientBuilder, reqconfigconbuilder);
 				}
@@ -247,6 +247,7 @@ public class StandardMattermostService implements MattermostService
 		return true;
 	}
 
+	@Deprecated
 	protected boolean isProxyRequired(String... noProxyHost)
 	{//
 		if (noProxyHost == null)
