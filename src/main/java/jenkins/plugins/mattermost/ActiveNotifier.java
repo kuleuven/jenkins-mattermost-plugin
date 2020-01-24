@@ -19,7 +19,6 @@ import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
 
 
-
 @SuppressWarnings("rawtypes")
 public class ActiveNotifier implements FineGrainedNotifier {
 
@@ -27,18 +26,21 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
   MattermostNotifier notifier;
   BuildListener listener;
+  private final TokenExpander tokenExpander;
 
-  public ActiveNotifier(MattermostNotifier notifier, BuildListener listener) {
+  public ActiveNotifier(MattermostNotifier notifier, BuildListener listener, TokenExpander tokenExpander) {
     super();
     this.notifier = notifier;
     this.listener = listener;
+    this.tokenExpander = tokenExpander;
   }
 
   private MattermostService getMattermost(AbstractBuild r) {
     return notifier.newMattermostService(r, listener);
   }
 
-  public void deleted(AbstractBuild r) {}
+  public void deleted(AbstractBuild r) {
+  }
 
   public void started(AbstractBuild build) {
 
@@ -47,14 +49,17 @@ public class ActiveNotifier implements FineGrainedNotifier {
     CauseAction causeAction = build.getAction(CauseAction.class);
 
     if (causeAction != null) {
-		//TODO CHANGED
-		//Cause scmCause = causeAction.findCause(SCMTrigger.SCMTriggerCause.class);
-		List<Cause> scmCauses = causeAction.getCauses();
-		if (scmCauses.size() == 0)
-		{
-        MessageBuilder message = new MessageBuilder(notifier, build);
+      //TODO CHANGED
+      //Cause scmCause = causeAction.findCause(SCMTrigger.SCMTriggerCause.class);
+      List<Cause> scmCauses = causeAction.getCauses();
+      if (scmCauses.size() == 0) {
+        MessageBuilder message = new MessageBuilder(notifier, build, this.tokenExpander);
         message.append(causeAction.getShortDescription());
-        notifyStart(build, message.appendOpenLink().toString());
+        message.appendOpenLink();
+        if (notifier.getIncludeCustomMessage()) {
+          message.appendCustomMessage(build.getResult());
+        }
+        notifyStart(build, message.toString());
         // Cause was found, exit early to prevent double-message
         return;
       }
@@ -65,26 +70,27 @@ public class ActiveNotifier implements FineGrainedNotifier {
       notifyStart(build, changes);
     } else {
       notifyStart(
-          build, getBuildStatusMessage(build, false, notifier.getIncludeCustomAttachmentMessage()));
+              build, getBuildStatusMessage(build, false, notifier.getIncludeCustomAttachmentMessage()));
     }
   }
 
   private void notifyStart(AbstractBuild build, String attachmentMessage) {
     AbstractProject<?, ?> project = (build != null) ? build.getProject() : null;
     AbstractBuild<?, ?> previousBuild =
-        (project != null && project.getLastBuild() != null)
-            ? project.getLastBuild().getPreviousCompletedBuild()
-            : null;
+            (project != null && project.getLastBuild() != null)
+                    ? project.getLastBuild().getPreviousCompletedBuild()
+                    : null;
     String expandedCustomMessage = getExpandedCustomMessage(build);
     if (previousBuild == null) {
       getMattermost(build).publish(attachmentMessage, expandedCustomMessage, "good");
     } else {
       getMattermost(build)
-          .publish(attachmentMessage, expandedCustomMessage, getBuildColor(previousBuild));
+              .publish(attachmentMessage, expandedCustomMessage, getBuildColor(previousBuild));
     }
   }
 
-  public void finalized(AbstractBuild r) {}
+  public void finalized(AbstractBuild r) {
+  }
 
   public void completed(AbstractBuild r) {
     AbstractProject<?, ?> project = r.getProject();
@@ -97,29 +103,29 @@ public class ActiveNotifier implements FineGrainedNotifier {
     }
     Result previousResult = (previousBuild != null) ? previousBuild.getResult() : Result.SUCCESS;
     if ((result == Result.ABORTED && notifier.getNotifyAborted())
-        || (result == Result.FAILURE // notify only on
+            || (result == Result.FAILURE // notify only on
             // single failed
             // build
             && previousResult != Result.FAILURE
             && notifier.getNotifyFailure())
-        || (result == Result.FAILURE // notify only on repeated failures
+            || (result == Result.FAILURE // notify only on repeated failures
             && previousResult == Result.FAILURE
             && notifier.getNotifyRepeatedFailure())
-        || (result == Result.NOT_BUILT && notifier.getNotifyNotBuilt())
-        || (result == Result.SUCCESS
+            || (result == Result.NOT_BUILT && notifier.getNotifyNotBuilt())
+            || (result == Result.SUCCESS
             && (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
             && notifier.getNotifyBackToNormal())
-        || (result == Result.SUCCESS && notifier.getNotifySuccess())
-        || (result == Result.UNSTABLE && notifier.getNotifyUnstable())) {
+            || (result == Result.SUCCESS && notifier.getNotifySuccess())
+            || (result == Result.UNSTABLE && notifier.getNotifyUnstable())) {
       String expandedCustomMessage = getExpandedCustomMessage(r);
       getMattermost(r)
-          .publish(
-              getBuildStatusMessage(
-                  r,
-                  notifier.getIncludeTestSummary(),
-                  notifier.getIncludeCustomAttachmentMessage()),
-              expandedCustomMessage,
-              getBuildColor(r));
+              .publish(
+                      getBuildStatusMessage(
+                              r,
+                              notifier.getIncludeTestSummary(),
+                              notifier.getIncludeCustomAttachmentMessage()),
+                      expandedCustomMessage,
+                      getBuildColor(r));
       if (notifier.getCommitInfoChoice().showAnything()) {
         getMattermost(r).publish(getCommitList(r), expandedCustomMessage, getBuildColor(r));
       }
@@ -132,10 +138,10 @@ public class ActiveNotifier implements FineGrainedNotifier {
       return null;
     }
     ChangeLogSet changeSet = r.getChangeSet();
-	  List<ChangeLogSet.Entry> entries = new LinkedList<>();
-	  Set<ChangeLogSet.AffectedFile> files = new HashSet<ChangeLogSet.AffectedFile>();
+    List<ChangeLogSet.Entry> entries = new LinkedList<>();
+    Set<ChangeLogSet.AffectedFile> files = new HashSet<ChangeLogSet.AffectedFile>();
     for (Object o : changeSet.getItems()) {
-		ChangeLogSet.Entry entry = (ChangeLogSet.Entry) o;
+      ChangeLogSet.Entry entry = (ChangeLogSet.Entry) o;
       logger.info("Entry " + o);
       entries.add(entry);
       files.addAll(entry.getAffectedFiles());
@@ -145,11 +151,10 @@ public class ActiveNotifier implements FineGrainedNotifier {
       return null;
     }
     Set<String> authors = new HashSet<String>();
-	  for (ChangeLogSet.Entry entry : entries)
-	  {
+    for (ChangeLogSet.Entry entry : entries) {
       authors.add(entry.getAuthor().getDisplayName());
     }
-    MessageBuilder message = new MessageBuilder(notifier, r);
+    MessageBuilder message = new MessageBuilder(notifier, r, this.tokenExpander);
     message.append(":pray: Started by changes from ");
     message.append(StringUtils.join(authors, ", "));
     message.append(" (");
@@ -164,9 +169,9 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
   String getCommitList(AbstractBuild r) {
     ChangeLogSet changeSet = r.getChangeSet();
-	  List<ChangeLogSet.Entry> entries = new LinkedList<ChangeLogSet.Entry>();
+    List<ChangeLogSet.Entry> entries = new LinkedList<ChangeLogSet.Entry>();
     for (Object o : changeSet.getItems()) {
-		ChangeLogSet.Entry entry = (ChangeLogSet.Entry) o;
+      ChangeLogSet.Entry entry = (ChangeLogSet.Entry) o;
       logger.info("Entry " + o);
       entries.add(entry);
     }
@@ -179,7 +184,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
       String upProjectName = c.getUpstreamProject();
       int buildNumber = c.getUpstreamBuild();
       AbstractProject project =
-          Hudson.getInstance().getItemByFullName(upProjectName, AbstractProject.class);
+              Hudson.getInstance().getItemByFullName(upProjectName, AbstractProject.class);
       if (project == null) {
         return "No upstream project.";
       }
@@ -187,8 +192,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
       return getCommitList(upBuild);
     }
     Set<String> commits = new HashSet<String>();
-	  for (ChangeLogSet.Entry entry : entries)
-	  {
+    for (ChangeLogSet.Entry entry : entries) {
       StringBuffer commit = new StringBuffer();
       CommitInfoChoice commitInfoChoice = notifier.getCommitInfoChoice();
       if (commitInfoChoice.showTitle()) {
@@ -199,7 +203,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
       }
       commits.add(commit.toString());
     }
-    MessageBuilder message = new MessageBuilder(notifier, r);
+    MessageBuilder message = new MessageBuilder(notifier, r, this.tokenExpander);
     message.append("Changes:\n- ");
     message.append(StringUtils.join(commits, "\n- "));
     return message.toString();
@@ -217,8 +221,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
   }
 
   String getBuildStatusMessage(
-      AbstractBuild r, boolean includeTestSummary, boolean includeCustomAttachmentMessage) {
-    MessageBuilder message = new MessageBuilder(notifier, r);
+          AbstractBuild r, boolean includeTestSummary, boolean includeCustomAttachmentMessage) {
+    MessageBuilder message = new MessageBuilder(notifier, r, this.tokenExpander);
     message.appendStatusMessage();
     message.appendDuration();
     message.appendOpenLink();
@@ -249,23 +253,25 @@ public class ActiveNotifier implements FineGrainedNotifier {
   public static class MessageBuilder {
 
     private static final String STARTING_STATUS_MESSAGE = ":pray: Starting...",
-        BACK_TO_NORMAL_STATUS_MESSAGE = ":white_check_mark: Back to normal",
-        STILL_FAILING_STATUS_MESSAGE = ":no_entry_sign: Still Failing",
-        SUCCESS_STATUS_MESSAGE = ":white_check_mark: Success",
-        FAILURE_STATUS_MESSAGE = ":no_entry_sign: Failure",
-        ABORTED_STATUS_MESSAGE = ":warning: Aborted",
-        NOT_BUILT_STATUS_MESSAGE = ":warning: Not built",
-        UNSTABLE_STATUS_MESSAGE = ":warning: Unstable",
-        UNKNOWN_STATUS_MESSAGE = ":question: Unknown";
+            BACK_TO_NORMAL_STATUS_MESSAGE = ":white_check_mark: Back to normal",
+            STILL_FAILING_STATUS_MESSAGE = ":no_entry_sign: Still Failing",
+            SUCCESS_STATUS_MESSAGE = ":white_check_mark: Success",
+            FAILURE_STATUS_MESSAGE = ":no_entry_sign: Failure",
+            ABORTED_STATUS_MESSAGE = ":warning: Aborted",
+            NOT_BUILT_STATUS_MESSAGE = ":warning: Not built",
+            UNSTABLE_STATUS_MESSAGE = ":warning: Unstable",
+            UNKNOWN_STATUS_MESSAGE = ":question: Unknown";
 
     private StringBuffer message;
     private MattermostNotifier notifier;
     private AbstractBuild build;
+    private final TokenExpander tokenExpander;
 
-    public MessageBuilder(MattermostNotifier notifier, AbstractBuild build) {
+    public MessageBuilder(MattermostNotifier notifier, AbstractBuild build, TokenExpander tokenExpander) {
       this.notifier = notifier;
       this.message = new StringBuffer();
       this.build = build;
+      this.tokenExpander = tokenExpander;
       startMessage();
     }
 
@@ -313,8 +319,8 @@ public class ActiveNotifier implements FineGrainedNotifier {
        * the status should be "Back to normal"
        */
       if (result == Result.SUCCESS
-          && (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
-          && buildHasSucceededBefore) {
+              && (previousResult == Result.FAILURE || previousResult == Result.UNSTABLE)
+              && buildHasSucceededBefore) {
         return BACK_TO_NORMAL_STATUS_MESSAGE;
       }
       if (result == Result.FAILURE && previousResult == Result.FAILURE) {
@@ -390,6 +396,13 @@ public class ActiveNotifier implements FineGrainedNotifier {
       return this;
     }
 
+    public MessageBuilder appendCustomMessage(Result buildResult) {
+      String replaced = tokenExpander.expand(notifier.getCustomMessage(), build);
+      message.append("\n");
+      message.append(replaced);
+      return this;
+    }
+
     public MessageBuilder appendCustomAttachmentMessage() {
       String customAttachmentMessage = notifier.getCustomAttachmentMessage();
       EnvVars envVars = new EnvVars();
@@ -401,7 +414,10 @@ public class ActiveNotifier implements FineGrainedNotifier {
         logger.log(SEVERE, e.getMessage(), e);
       }
       message.append("\n");
-      message.append(envVars.expand(customAttachmentMessage));
+      String replaced = tokenExpander.expand(envVars.expand(customAttachmentMessage), build);
+      message.append(replaced);
+      message.append("\n");
+
       return this;
     }
 
@@ -417,11 +433,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
 //      long buildDuration = build.getDuration();
 //      long buildEndTime = buildStartTime + buildDuration;
 //      long backToNormalDuration = buildEndTime - previousSuccessEndTime;
-		//TODO CHANGED
-		long currentBuildStartTime = build.getTimeInMillis();
-		long lastSuccessBuildStartTime = previousSuccessfulBuild.getTimeInMillis();
-		long diff = currentBuildStartTime - lastSuccessBuildStartTime;
-		return Util.getTimeSpanString(diff);
+      //TODO CHANGED
+      long currentBuildStartTime = build.getTimeInMillis();
+      long lastSuccessBuildStartTime = previousSuccessfulBuild.getTimeInMillis();
+      long diff = currentBuildStartTime - lastSuccessBuildStartTime;
+      return Util.getTimeSpanString(diff);
     }
 
     public String escape(String string) {

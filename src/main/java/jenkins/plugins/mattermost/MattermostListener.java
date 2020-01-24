@@ -50,7 +50,7 @@ public class MattermostListener extends RunListener<AbstractBuild> {
     Map<Descriptor<Publisher>, Publisher> map = project.getPublishersList().toMap();
     for (Publisher publisher : map.values()) {
       if (publisher instanceof MattermostNotifier) {
-        return new ActiveNotifier((MattermostNotifier) publisher, (BuildListener) listener);
+        return new ActiveNotifier((MattermostNotifier) publisher, (BuildListener) listener, new JenkinsTokenExpander(listener));
       }
     }
     return new DisabledNotifier();
