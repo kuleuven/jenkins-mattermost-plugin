@@ -365,10 +365,11 @@ public class MattermostNotifier extends Notifier {
   public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
     if (startNotification) {
       Map<Descriptor<Publisher>, Publisher> map = build.getProject().getPublishersList().toMap();
+      JenkinsTokenExpander tokenExpander = new JenkinsTokenExpander(listener);
       for (Publisher publisher : map.values()) {
         if (publisher instanceof MattermostNotifier) {
           logger.info("Invoking Started...");
-          new ActiveNotifier((MattermostNotifier) publisher, listener).started(build);
+          new ActiveNotifier((MattermostNotifier) publisher, listener, tokenExpander).started(build);
         }
       }
     }
