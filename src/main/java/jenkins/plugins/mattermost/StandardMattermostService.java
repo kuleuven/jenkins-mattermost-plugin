@@ -2,6 +2,7 @@ package jenkins.plugins.mattermost;
 
 import hudson.ProxyConfiguration;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
@@ -107,6 +108,18 @@ public class StandardMattermostService implements MattermostService
 		return out.toString();
 	}
 
+	private static MattermostNotifier.DescriptorImpl getServiceDescriptor(){
+		MattermostNotifier.DescriptorImpl mattermostNotifierDescriptor =
+				Jenkins.get().getDescriptorByType(MattermostNotifier.DescriptorImpl.class);
+
+		// taken from other class, not really sure about the use case here :)
+		if (mattermostNotifierDescriptor == null){
+			logger.fine("Could not get MattermostNotifier descriptor by class, trying by ID..");
+			mattermostNotifierDescriptor = (MattermostNotifier.DescriptorImpl) Jenkins.get().getDescriptor("mattermostNotifier");//junit test fallback
+		}
+		return mattermostNotifierDescriptor;
+	}
+
 	public boolean publish(String message)
 	{
 		return publish(message, "warning");
@@ -137,10 +150,23 @@ public class StandardMattermostService implements MattermostService
 				reqconfigconbuilder.setConnectTimeout(10000);
 				reqconfigconbuilder.setSocketTimeout(10000);
 
-				ProxyConfiguration proxy = Jenkins.get().proxy;
-				if (proxy != null && isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns(proxy.noProxyHost)))
+				ProxyConfiguration globalProxy = Jenkins.get().proxy;
+				MattermostNotifier.DescriptorImpl serviceDescriptor = getServiceDescriptor();
+
+				if (serviceDescriptor.isUseCustomProxy()) {
+
+					ProxyConfiguration customProxy = new ProxyConfiguration(
+							serviceDescriptor.getProxyServer(),
+							serviceDescriptor.getProxyPort(),
+							serviceDescriptor.getProxyUsername(),
+							serviceDescriptor.getProxyPassword().getPlainText(),
+							null,
+							null);
+					setupProxy(customProxy, clientBuilder, reqconfigconbuilder);
+					logger.info("MattermostNotifier using custom proxy: "+ customProxy.name + ":" + customProxy.port);
+				} else if (globalProxy != null && isProxyRequired(ProxyConfiguration.getNoProxyHostPatterns(globalProxy.noProxyHost)))
 				{
-					setupProxy(proxy, clientBuilder, reqconfigconbuilder);
+					setupProxy(globalProxy, clientBuilder, reqconfigconbuilder);
 				}
 
 				RequestConfig config = reqconfigconbuilder.build();

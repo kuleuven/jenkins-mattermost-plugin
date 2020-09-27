@@ -26,6 +26,28 @@
     <f:entry title="Build Server URL" help="/plugin/mattermost/help-globalConfig-mattermostBuildServerUrl.html">
         <f:textbox  field="buildServerUrl"/>
     </f:entry>
+
+<!--    <f:optionalBlock title="Custom proxy settings"  >-->
+    <f:advanced title="Mattermost Custom Proxy Settings">
+        <f:entry title="${%Use Custom Proxy}" help="Enables using custom proxy">
+            <f:checkbox field="useCustomProxy"/>
+        </f:entry>
+        <f:entry title="${%Proxy Server}" help="Enter proxy address">
+            <f:textbox field="proxyServer" />
+        </f:entry>
+        <f:entry title="${%Proxy Port}" help="Enter proxy port">
+            <f:number field="proxyPort" />
+        </f:entry>
+        <f:entry title="${%Proxy UserName}" help="Enter proxy username">
+            <f:textbox field="proxyUsername" />
+        </f:entry>
+        <f:entry title="${%Proxy Password}" help="Enter proxy password">
+            <f:password field="proxyPassword" />
+        </f:entry>
+    </f:advanced>
+<!--      </f:optionalBlock>-->
+
+
     <f:validateButton
         title="${%Test Connection}" progress="${%Testing...}"
         method="testConnection" with="endpoint,room,buildServerUrl"
