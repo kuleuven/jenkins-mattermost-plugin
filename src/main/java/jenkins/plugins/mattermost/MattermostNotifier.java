@@ -44,6 +44,11 @@ public class MattermostNotifier extends Notifier {
   private String room;
   private String icon;
   private String sendAs;
+  private boolean useCustomProxy;
+  private Secret proxyPassword;
+  private String proxyUsername;
+  private String proxyServer;
+  private int proxyPort;
   private boolean startNotification;
   private boolean notifySuccess;
   private boolean notifyAborted;
@@ -86,6 +91,24 @@ public class MattermostNotifier extends Notifier {
     } else {
       return buildServerUrl;
     }
+  }
+
+  public boolean isUseCustomProxy() { return useCustomProxy; }
+
+  public Secret getProxyPassword() {
+    return proxyPassword;
+  }
+
+  public String getProxyUsername() {
+    return proxyUsername;
+  }
+
+  public String getProxyServer() {
+    return proxyServer;
+  }
+
+  public int getProxyPort() {
+    return proxyPort;
   }
 
   public String getSendAs() {
@@ -150,6 +173,28 @@ public class MattermostNotifier extends Notifier {
 
   public void setEndpoint(String endpoint) {
     this.endpoint = Secret.fromString(endpoint);
+  }
+
+  public void setProxyPassword(String proxyPassword) {
+    this.proxyPassword = Secret.fromString(proxyPassword);
+  }
+
+  @DataBoundSetter
+  public void setUseCustomProxy(boolean useCustomProxy) { this.useCustomProxy = useCustomProxy; }
+
+  @DataBoundSetter
+  public void setProxyUsername(String proxyUsername) {
+    this.proxyUsername = proxyUsername;
+  }
+
+  @DataBoundSetter
+  public void setProxyServer(String proxyServer) {
+    this.proxyServer = proxyServer;
+  }
+
+  @DataBoundSetter
+  public void setProxyPort(int proxyPort) {
+    this.proxyPort = proxyPort;
   }
 
   @DataBoundSetter
@@ -270,6 +315,8 @@ public class MattermostNotifier extends Notifier {
 //    ,includeCustomAttachmentMessage,customAttachmentMessage,includeCustomMessage,customMessage);
 //  }
 
+
+
   @DataBoundConstructor
   public MattermostNotifier(
           final String endpoint,
@@ -385,9 +432,66 @@ public class MattermostNotifier extends Notifier {
     private String buildServerUrl;
     private String sendAs;
 
+    private boolean useCustomProxy;
+    private String proxyServer;
+    private int proxyPort;
+    private String proxyUsername;
+    private Secret proxyPassword;
+
     public DescriptorImpl() {
       load();
     }
+
+    public boolean isUseCustomProxy() { return useCustomProxy; }
+
+    public String getProxyServer(){
+      return proxyServer;
+    }
+
+    public int getProxyPort(){
+      return proxyPort;
+    }
+
+    public String getProxyUsername(){
+      return proxyUsername;
+    }
+
+    public Secret getProxyPassword(){
+      return proxyPassword;
+    }
+
+    @DataBoundSetter
+    public void setUseCustomProxy(boolean useCustomProxy) { this.useCustomProxy = useCustomProxy; }
+
+    @DataBoundSetter
+    public void setProxyServer(String proxyServer) {
+      this.proxyServer = proxyServer;
+    }
+
+    @DataBoundSetter
+    public void setProxyPort(int proxyPort) {
+      this.proxyPort = proxyPort;
+    }
+
+    @DataBoundSetter
+    public void setProxyUsername(String proxyUsername) {
+      this.proxyUsername = proxyUsername;
+    }
+
+    @DataBoundSetter
+    public void setProxyPassword(Secret proxyPassword) {
+      this.proxyPassword = proxyPassword;
+    }
+
+    @DataBoundSetter
+    public void setProxyPassword(String proxyPassword) {
+      if(proxyPassword == null){
+        this.proxyPassword = null;
+        return;
+      }
+      this.setProxyPassword(Secret.fromString(proxyPassword));
+    }
+
 
     @DataBoundSetter
     public void setEndpoint(String endpoint) {
@@ -474,13 +578,14 @@ public class MattermostNotifier extends Notifier {
       return "Mattermost Notifications";
     }
 
+
     @POST
     public FormValidation doTestConnection(
         @QueryParameter("endpoint") final String endpoint,
         @QueryParameter("room") final String room,
         @QueryParameter("icon") final String icon,
         @QueryParameter("buildServerUrl") final String buildServerUrl)
-        throws FormException {
+            throws FormException {
       if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER))
       {
         return FormValidation.error("Insufficient permission.");
