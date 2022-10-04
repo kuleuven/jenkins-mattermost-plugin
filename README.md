@@ -1,16 +1,17 @@
 # Mattermost plugin for Jenkins
 
-Based on a fork of the Slack plugin:
+This plugin allows users to send build notifications to a self-hosted
+[Mattermost](http://www.mattermost.org/) installation.
 
+It is based on a fork of the Slack plugin:
 https://github.com/jenkinsci/slack-plugin/
 
-Which was a fork of the HipChat plugin:
-
+The Slack plugin was a fork of the HipChat plugin:
 https://github.com/jlewallen/jenkins-hipchat-plugin
 
-Which was, in turn, a fork of the Campfire plugin.
+Which in turn, was a fork of the Campfire plugin.
 
-Includes [Jenkins Pipeline](https://github.com/jenkinsci/workflow-plugin) support as of version 2.0:
+It includes [Jenkins Pipeline](https://github.com/jenkinsci/workflow-plugin) support as of version 2.0:
 
 ```
 mattermostSend color: 'good', message: 'Message from Jenkins Pipeline', text: 'optional for @here mentions and searchable text'
@@ -18,14 +19,14 @@ mattermostSend color: 'good', message: 'Message from Jenkins Pipeline', text: 'o
 
 # Jenkins Instructions
 
-1. Set up a Mattermost server
-2. Configure an incoming webhook
+1. The first step is to set up a Mattermost server
+2. Then Configure an incoming webhook
 3. Install this plugin on your Jenkins server
 4. **Add it as a Post-build action** in your Jenkins job.
 
 # Developer instructions
 
-Install Maven and JDK.
+Make sure you have Maven and JDK installed.
 
 Run unit tests
 
