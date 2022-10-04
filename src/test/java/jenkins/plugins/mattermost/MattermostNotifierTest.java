@@ -16,7 +16,7 @@ import java.util.Collection;
 @RunWith(Parameterized.class)
 public class MattermostNotifierTest extends TestCase {
 
-	private MattermostNotifierStub.DescriptorStub descriptor;
+  private MattermostNotifierStub.DescriptorStub descriptor;
   private MattermostServiceStub mattermostServiceStub;
   private boolean response;
   private FormValidation.Kind expectedResult;

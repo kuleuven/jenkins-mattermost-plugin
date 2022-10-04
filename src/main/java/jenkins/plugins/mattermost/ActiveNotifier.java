@@ -22,7 +22,7 @@ import static java.util.logging.Level.SEVERE;
 @SuppressWarnings("rawtypes")
 public class ActiveNotifier implements FineGrainedNotifier {
 
-  private static final Logger logger = Logger.getLogger(MattermostListener.class.getName());
+  private static final Logger logger = Logger.getLogger(MattermostNotifier.class.getName());
 
   MattermostNotifier notifier;
   BuildListener listener;
@@ -252,8 +252,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
 
   public static class MessageBuilder {
 
-    private static final String STARTING_STATUS_MESSAGE = ":pray: Starting...",
-            BACK_TO_NORMAL_STATUS_MESSAGE = ":white_check_mark: Back to normal",
+    private static final String BACK_TO_NORMAL_STATUS_MESSAGE = ":white_check_mark: Back to normal",
             STILL_FAILING_STATUS_MESSAGE = ":no_entry_sign: Still Failing",
             SUCCESS_STATUS_MESSAGE = ":white_check_mark: Success",
             FAILURE_STATUS_MESSAGE = ":no_entry_sign: Failure",
@@ -281,9 +280,7 @@ public class ActiveNotifier implements FineGrainedNotifier {
     }
 
     static String getStatusMessage(AbstractBuild r) {
-      if (r.isBuilding()) {
-        return STARTING_STATUS_MESSAGE;
-      }
+
       Result result = r.getResult();
       Result previousResult;
       Run lastBuild = r.getProject().getLastBuild();

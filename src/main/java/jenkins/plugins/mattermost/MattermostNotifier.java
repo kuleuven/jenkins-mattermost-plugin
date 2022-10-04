@@ -6,7 +6,6 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.model.Descriptor;
 import hudson.model.listeners.ItemListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -29,7 +28,6 @@ import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.CheckForNull;
 import java.io.IOException;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -405,20 +403,16 @@ public class MattermostNotifier extends Notifier {
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
       throws InterruptedException, IOException {
+    logger.info("Performing complete notifications");
+    new ActiveNotifier(this, listener, new JenkinsTokenExpander(listener)).completed(build);
     return true;
   }
 
   @Override
   public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
     if (startNotification) {
-      Map<Descriptor<Publisher>, Publisher> map = build.getProject().getPublishersList().toMap();
-      JenkinsTokenExpander tokenExpander = new JenkinsTokenExpander(listener);
-      for (Publisher publisher : map.values()) {
-        if (publisher instanceof MattermostNotifier) {
-          logger.info("Invoking Started...");
-          new ActiveNotifier((MattermostNotifier) publisher, listener, tokenExpander).started(build);
-        }
-      }
+      logger.info("Performing start notifications");
+      new ActiveNotifier((MattermostNotifier) this, listener, new JenkinsTokenExpander(listener)).started(build);
     }
     return super.prebuild(build, listener);
   }
