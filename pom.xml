@@ -116,7 +116,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-job</artifactId>
-      <version>2.36</version>
+      <version>1295.v395eb_7400005</version>
     </dependency>
     <dependency> <!-- StepConfigTester -->
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
